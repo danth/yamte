@@ -27,9 +27,11 @@ typedef struct editorRow {
 } editorRow;
 
 struct editorState {
+  int editor_lines;
   int cursor_row, cursor_column, cursor_rendered_column;
   int row_offset, column_offset;
   int row_count;
+  char *filename;
   editorRow *rows;
 };
 struct editorState state;
@@ -41,6 +43,7 @@ void initialiseState() {
   state.row_offset = 0;
   state.column_offset = 0;
   state.row_count = 0;
+  state.filename = NULL;
   state.rows = NULL;
 }
 
@@ -101,6 +104,9 @@ void appendRow(char *line, ssize_t line_length) {
 /*** files ***/
 
 void openFile(char *filename) {
+  free(state.filename);
+  state.filename = strdup(filename);
+
   FILE *file = fopen(filename, "r");
   if (!file) die("fopen");
 
@@ -143,8 +149,8 @@ void clampScroll() {
   if (state.cursor_row < state.row_offset) {
     state.row_offset = state.cursor_row;
   }
-  if (state.cursor_row >= state.row_offset + LINES) {
-    state.row_offset = state.cursor_row - LINES + 1;
+  if (state.cursor_row >= state.row_offset + state.editor_lines) {
+    state.row_offset = state.cursor_row - state.editor_lines + 1;
   }
 
   // Horizontal
@@ -158,7 +164,7 @@ void clampScroll() {
 
 void drawRows() {
   int screen_row;
-  for (screen_row = 0; screen_row < LINES; screen_row++) {
+  for (screen_row = 0; screen_row < state.editor_lines; screen_row++) {
     int file_row = screen_row + state.row_offset;
     if (file_row >= state.row_count) {
       mvaddch(screen_row, 0, '~');
@@ -175,10 +181,29 @@ void drawRows() {
   }
 }
 
+void drawStatus() {
+  attron(A_STANDOUT);
+
+  char status[80];
+  int length = snprintf(status, sizeof(status), "%.40s - %d lines",
+    state.filename ? state.filename : "[no name]", state.row_count);
+  if (length > COLS) length = COLS;
+  mvaddnstr(LINES-1, 0, status, length);
+
+  while (length < COLS) {
+    mvaddch(LINES-1, length, ' ');
+    length++;
+  }
+
+  attroff(A_STANDOUT);
+}
+
 void refreshScreen() {
   clear();
+  state.editor_lines = LINES - 1;
   clampScroll();
   drawRows();
+  drawStatus();
   move(
     state.cursor_row - state.row_offset,
     state.cursor_rendered_column - state.column_offset
