@@ -9,12 +9,19 @@ void die(const char *s) {
   exit(1);
 }
 
-void drawRows() {
-	int row;
-	for (row = 0; row < LINES; row++) {
-		mvaddch(row, 0, '~');
-	}
+/*** state ***/
+
+struct editorState {
+	int cursor_row, cursor_column;
+};
+struct editorState state;
+
+void initialiseState() {
+	state.cursor_row = 0;
+	state.cursor_column = 0;
 }
+
+/*** output ***/
 
 void initialiseScreen() {
 	initscr();
@@ -25,11 +32,37 @@ void initialiseScreen() {
 	keypad(stdscr, TRUE); // Replace F1, F2, F3... with token values
 }
 
+void drawRows() {
+	int row;
+	for (row = 0; row < LINES; row++) {
+		mvaddch(row, 0, '~');
+	}
+}
+
 void refreshScreen() {
 	clear();
 	drawRows();
-	move(0, 0);
+	move(state.cursor_row, state.cursor_column);
 	refresh();
+}
+
+/*** input ***/
+
+void moveCursor(char key) {
+	switch (key) {
+		case 'w':
+			state.cursor_row--;
+			break;
+		case 's':
+			state.cursor_row++;
+			break;
+		case 'a':
+			state.cursor_column--;
+			break;
+		case 'd':
+			state.cursor_column++;
+			break;
+	}
 }
 
 void processKey() {
@@ -39,10 +72,20 @@ void processKey() {
 			endwin();
 			exit(0);
 			break;
+
+		case 'w':
+		case 's':
+		case 'a':
+		case 'd':
+			moveCursor(key);
+			break;
 	}
 }
 
+/*** main ***/
+
 int main() {
+	initialiseState();
 	initialiseScreen();
 	while(1) {
 		refreshScreen();
