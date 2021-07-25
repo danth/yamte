@@ -7,7 +7,15 @@
 
 struct termios original_termios;
 
+void clearScreen() {
+	// Clear the whole screen
+	write(STDOUT_FILENO, "\x1b[2J", 4);
+	// Move the cursor to top-left
+	write(STDOUT_FILENO, "\x1b[H", 3);
+}
+
 void die(const char *s) {
+	clearScreen();
   perror(s);
   exit(1);
 }
@@ -54,10 +62,15 @@ char readKey() {
 	return key;
 }
 
+void refreshScreen() {
+	clearScreen();
+}
+
 void processKey() {
 	char key = readKey();
 	switch (key) {
 		case CTRL_KEY('q'):
+			clearScreen();
 			exit(0);
 			break;
 	}
@@ -65,6 +78,9 @@ void processKey() {
 
 int main() {
 	enableRawMode();
-	while(1) processKey();
+	while(1) {
+		refreshScreen();
+		processKey();
+	}
 	return 0;
 }
