@@ -45,16 +45,26 @@ void enableRawMode() {
 	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");
 }
 
+char readKey() {
+	int nread;
+	char key;
+	while ((nread = read(STDIN_FILENO, &key, 1)) != 1) {
+		if (nread == -1 && errno != EAGAIN) die("read");
+	}
+	return key;
+}
+
+void processKey() {
+	char key = readKey();
+	switch (key) {
+		case CTRL_KEY('q'):
+			exit(0);
+			break;
+	}
+}
+
 int main() {
 	enableRawMode();
-
-	while (1) {
-		char c = '\0';
-		if (read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN) die("read");
-
-		// Loop until 'q' is pressed
-		if (c == CTRL_KEY('q')) break;
-	};
-
+	while(1) processKey();
 	return 0;
 }
