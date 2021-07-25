@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+#define TAB_STOP 8
 #define CTRL_KEY(k) ((k) & 0x1f)
 
 void die(const char *s) {
@@ -20,7 +21,9 @@ void die(const char *s) {
 
 typedef struct editorRow {
   int size;
-  char *chars;
+  char *characters;
+  int rendered_size;
+  char *rendered_characters;
 } editorRow;
 
 struct editorState {
@@ -40,19 +43,50 @@ void initialiseState() {
   state.rows = NULL;
 }
 
-/*** files ***/
+/*** rows ***/
 
-void loadLine(char *line, ssize_t line_length) {
+void renderRow(editorRow *row) {
+  int j;
+  // Count how many tabs are in the row
+  int tabs = 0;
+  for (j = 0; j < row->size; j++)
+    if (row->characters[j] == '\t') tabs++;
+
+  free(row->rendered_characters);
+  // Additional memory must be allocated for rendered tabs
+  row->rendered_characters = malloc(row->size + tabs*(TAB_STOP-1) + 1);
+
+  int idx = 0;
+  for (j = 0; j < row->size; j++) {
+    if (row->characters[j] == '\t') {
+      // Replace tabs with spaces up to the next tab stop
+      row->rendered_characters[idx++] = ' ';
+      while (idx % TAB_STOP != 0) row->rendered_characters[idx++] = ' ';
+    } else {
+      row->rendered_characters[idx++] = row->characters[j];
+    }
+  }
+  row->rendered_characters[idx] = '\0';
+  row->rendered_size = idx;
+}
+
+void appendRow(char *line, ssize_t line_length) {
   state.rows = realloc(state.rows, sizeof(editorRow) * (state.row_count + 1));
 
   int row = state.row_count;
   state.row_count++;
 
   state.rows[row].size = line_length;
-  state.rows[row].chars = malloc(line_length + 1);
-  memcpy(state.rows[row].chars, line, line_length);
-  state.rows[row].chars[line_length] = '\0';
+  state.rows[row].characters = malloc(line_length + 1);
+  memcpy(state.rows[row].characters, line, line_length);
+  state.rows[row].characters[line_length] = '\0';
+
+  state.rows[row].rendered_size = 0;
+  state.rows[row].rendered_characters = NULL;
+  renderRow(&state.rows[row]);
 }
+
+/*** files ***/
 
 void openFile(char *filename) {
   FILE *file = fopen(filename, "r");
@@ -67,7 +101,7 @@ void openFile(char *filename) {
                             || line[line_length - 1] == '\r'))
       line_length--;
 
-    loadLine(line, line_length);
+    appendRow(line, line_length);
   }
   free(line);
   fclose(file);
@@ -109,12 +143,12 @@ void drawRows() {
     if (file_row >= state.row_count) {
       mvaddch(screen_row, 0, '~');
     } else {
-      int length = state.rows[file_row].size - state.column_offset;
+      int length = state.rows[file_row].rendered_size - state.column_offset;
       if (length < 0) length = 0;
       if (length > COLS) length = COLS;
       mvaddnstr(
         screen_row, 0,
-        &state.rows[file_row].chars[state.column_offset],
+        &state.rows[file_row].rendered_characters[state.column_offset],
         length
       );
     }
