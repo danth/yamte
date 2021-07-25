@@ -234,7 +234,9 @@ void moveCursor(int key) {
       break;
     case KEY_END:
       // Move to the right of the screen
-      state.cursor_column = COLS-1;
+      if (state.cursor_row < state.row_count) {
+        state.cursor_column = state.rows[state.cursor_row].size;
+      }
       break;
   }
 
