@@ -1,5 +1,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -11,14 +13,35 @@ void die(const char *s) {
 
 /*** state ***/
 
+typedef struct editorRow {
+	int size;
+	char *chars;
+} editorRow;
+
 struct editorState {
 	int cursor_row, cursor_column;
+	int row_count;
+	editorRow row;
 };
 struct editorState state;
 
 void initialiseState() {
 	state.cursor_row = 0;
 	state.cursor_column = 0;
+	state.row_count = 0;
+}
+
+/*** files ***/
+
+void openFile() {
+	char *line = "Hello, world!";
+	ssize_t line_length = 13;
+
+	state.row.size = line_length;
+	state.row.chars = malloc(line_length + 1);
+	memcpy(state.row.chars, line, line_length);
+	state.row.chars[line_length] = '\0';
+	state.row_count = 1;
 }
 
 /*** output ***/
@@ -35,7 +58,13 @@ void initialiseScreen() {
 void drawRows() {
 	int row;
 	for (row = 0; row < LINES; row++) {
-		mvaddch(row, 0, '~');
+		if (row >= state.row_count) {
+			mvaddch(row, 0, '~');
+		} else {
+			int length = state.row.size;
+			if (length > COLS) length = COLS;
+			mvaddnstr(row, 0, state.row.chars, length);
+		}
 	}
 }
 
@@ -103,9 +132,12 @@ void processKey() {
 int main() {
 	initialiseState();
 	initialiseScreen();
+	openFile();
+
 	while(1) {
 		refreshScreen();
 		processKey();
 	}
+
 	return 0;
 }
