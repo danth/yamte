@@ -85,20 +85,26 @@ void renderRow(editorRow *row) {
   row->rendered_size = idx;
 }
 
-void appendRow(char *line, ssize_t line_length) {
+void rowInsert(int at, char *text, size_t length) {
+  if (at < 0 || at > state.row_count) return;
+
   state.rows = realloc(state.rows, sizeof(editorRow) * (state.row_count + 1));
+  memmove(
+    &state.rows[at + 1],
+    &state.rows[at],
+    sizeof(editorRow) * (state.row_count - at)
+  );
 
-  int row = state.row_count;
+  state.rows[at].size = length;
+  state.rows[at].characters = malloc(length + 1);
+  memcpy(state.rows[at].characters, text, length);
+  state.rows[at].characters[length] = '\0';
+
+  state.rows[at].rendered_size = 0;
+  state.rows[at].rendered_characters = NULL;
+  renderRow(&state.rows[at]);
+
   state.row_count++;
-
-  state.rows[row].size = line_length;
-  state.rows[row].characters = malloc(line_length + 1);
-  memcpy(state.rows[row].characters, line, line_length);
-  state.rows[row].characters[line_length] = '\0';
-
-  state.rows[row].rendered_size = 0;
-  state.rows[row].rendered_characters = NULL;
-  renderRow(&state.rows[row]);
 }
 
 void rowFree(editorRow *row) {
@@ -145,7 +151,7 @@ void rowAppendString(editorRow *row, char *text, size_t length) {
 
 void insertCharacter(int character) {
   if (state.cursor_row == state.row_count) {
-    appendRow("", 0);
+    rowInsert(state.row_count, "", 0);
   }
   rowInsertCharacter(&state.rows[state.cursor_row], state.cursor_column, character);
   state.cursor_column++;
@@ -167,6 +173,25 @@ void deleteCharacter() {
   }
 }
 
+void insertNewline() {
+  if (state.cursor_column == 0) {
+    rowInsert(state.cursor_row, "", 0);
+  } else {
+    editorRow *row = &state.rows[state.cursor_row];
+    rowInsert(
+      state.cursor_row + 1,
+      &row->characters[state.cursor_column],
+      row->size - state.cursor_column
+    );
+    row = &state.rows[state.cursor_row];
+    row->size = state.cursor_column;
+    row->characters[row->size] = '\0';
+    renderRow(row);
+  }
+  state.cursor_row++;
+  state.cursor_column = 0;
+}
+
 /*** files ***/
 
 void openFile(char *filename) {
@@ -185,7 +210,7 @@ void openFile(char *filename) {
                             || line[line_length - 1] == '\r'))
       line_length--;
 
-    appendRow(line, line_length);
+    rowInsert(state.row_count, line, line_length);
   }
   free(line);
   fclose(file);
@@ -355,6 +380,10 @@ void processKey() {
     case KEY_HOME:
     case KEY_END:
       moveCursor(key);
+      break;
+
+    case '\r':
+      insertNewline();
       break;
 
     case KEY_BACKSPACE:
