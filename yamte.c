@@ -29,6 +29,10 @@ void enableRawMode() {
 	// Miscellaneous flags related to "raw mode"
 	raw.c_iflag &= ~(BRKINT | INPCK | ISTRIP);
 	raw.c_cflag |= (CS8);
+	// read() can return as soon as there is any input
+	raw.c_cc[VMIN] = 0;
+	// read() times out after 1/10 of a second
+  raw.c_cc[VTIME] = 1;
 
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
@@ -36,8 +40,13 @@ void enableRawMode() {
 int main() {
 	enableRawMode();
 
-	char c;
-	// Loop until 'q' is pressed
-	while (read(STDIN_FILENO, &c, 1) == 1 && c != 'q');
+	while (1) {
+		char c = '\0';
+		read(STDIN_FILENO, &c, 1);
+
+		// Loop until 'q' is pressed
+		if (c == 'q') break;
+	};
+
 	return 0;
 }
