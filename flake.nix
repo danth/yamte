@@ -11,7 +11,8 @@
         packages.yamte = pkgs.stdenv.mkDerivation {
           name = "yamte";
           src = ./.;
-          buildPhase = "cc yamte.c -o yamte -Wall -Wextra -pedantic -std=c99";
+          buildInputs = with pkgs; [ ncurses ];
+          buildPhase = "cc yamte.c -o yamte -Wall -Wextra -pedantic -std=c99 -lncurses";
           installPhase = "install -D yamte $out/bin/yamte";
         };
         defaultPackage = packages.yamte;
