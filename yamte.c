@@ -141,29 +141,45 @@ void moveCursor(int key) {
 
   switch (key) {
     case 'w':
+      // Move up unless we are on the first line
       if (state.cursor_row > 0) {
         state.cursor_row--;
       }
       break;
     case 's':
+      // Move down unless we are on the last line
       if (state.cursor_row < state.row_count) {
         state.cursor_row++;
       }
       break;
     case 'a':
+      // Move left unless we are at the first column
       if (state.cursor_column > 0) {
         state.cursor_column--;
       }
+      // Go to the last column of the previous line
+      else if (state.cursor_row > 0) {
+        state.cursor_row--;
+        state.cursor_column = state.rows[state.cursor_row].size;
+      }
       break;
     case 'd':
+      // Move right unless we are at the last column
       if (row && state.cursor_column < row->size) {
         state.cursor_column++;
       }
+      // Go to the first column of the next line
+      else if (row && state.cursor_column == row->size) {
+        state.cursor_row++;
+        state.cursor_column = 0;
+      }
       break;
     case KEY_HOME:
+      // Move to the first column
       state.cursor_column = 0;
       break;
     case KEY_END:
+      // Move to the right of the screen
       state.cursor_column = COLS-1;
       break;
   }
