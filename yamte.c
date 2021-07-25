@@ -101,6 +101,25 @@ void appendRow(char *line, ssize_t line_length) {
   renderRow(&state.rows[row]);
 }
 
+void rowInsertCharacter(editorRow *row, int at, int character) {
+  if (at < 0 || at > row->size) at = row->size;
+  row->characters = realloc(row->characters, row->size + 2);
+  memmove(&row->characters[at + 1], &row->characters[at], row->size - at + 1);
+  row->size++;
+  row->characters[at] = character;
+  renderRow(row);
+}
+
+/*** editor operations ***/
+
+void insertCharacter(int character) {
+  if (state.cursor_row == state.row_count) {
+    appendRow("", 0);
+  }
+  rowInsertCharacter(&state.rows[state.cursor_row], state.cursor_column, character);
+  state.cursor_column++;
+}
+
 /*** files ***/
 
 void openFile(char *filename) {
@@ -219,19 +238,19 @@ void moveCursor(int key) {
                  : &state.rows[state.cursor_row];
 
   switch (key) {
-    case 'w':
+    case KEY_UP:
       // Move up unless we are on the first line
       if (state.cursor_row > 0) {
         state.cursor_row--;
       }
       break;
-    case 's':
+    case KEY_DOWN:
       // Move down unless we are on the last line
       if (state.cursor_row < state.row_count) {
         state.cursor_row++;
       }
       break;
-    case 'a':
+    case KEY_LEFT:
       // Move left unless we are at the first column
       if (state.cursor_column > 0) {
         state.cursor_column--;
@@ -242,7 +261,7 @@ void moveCursor(int key) {
         state.cursor_column = state.rows[state.cursor_row].size;
       }
       break;
-    case 'd':
+    case KEY_RIGHT:
       // Move right unless we are at the last column
       if (row && state.cursor_column < row->size) {
         state.cursor_column++;
@@ -282,13 +301,17 @@ void processKey() {
       exit(0);
       break;
 
-    case 'w':
-    case 's':
-    case 'a':
-    case 'd':
+    case KEY_UP:
+    case KEY_DOWN:
+    case KEY_LEFT:
+    case KEY_RIGHT:
     case KEY_HOME:
     case KEY_END:
       moveCursor(key);
+      break;
+
+    default:
+      insertCharacter(key);
       break;
   }
 }
