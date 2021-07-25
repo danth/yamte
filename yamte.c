@@ -135,6 +135,10 @@ void refreshScreen() {
 /*** input ***/
 
 void moveCursor(int key) {
+  editorRow *row = (state.cursor_row > state.row_count)
+                 ? NULL
+                 : &state.rows[state.cursor_row];
+
   switch (key) {
     case 'w':
       if (state.cursor_row > 0) {
@@ -152,7 +156,9 @@ void moveCursor(int key) {
       }
       break;
     case 'd':
-      state.cursor_column++;
+      if (row && state.cursor_column < row->size) {
+        state.cursor_column++;
+      }
       break;
     case KEY_HOME:
       state.cursor_column = 0;
@@ -160,6 +166,14 @@ void moveCursor(int key) {
     case KEY_END:
       state.cursor_column = COLS-1;
       break;
+  }
+
+  row = (state.cursor_row > state.row_count)
+      ? NULL
+      : &state.rows[state.cursor_row];
+  int row_length = row ? row->size : 0;
+  if (state.cursor_column > row_length) {
+    state.cursor_column = row_length;
   }
 }
 
