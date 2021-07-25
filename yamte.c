@@ -1,17 +1,23 @@
+#include <errno.h>
 #include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
 
 struct termios original_termios;
 
+void die(const char *s) {
+  perror(s);
+  exit(1);
+}
+
 void disableRawMode() {
 	// Restore the original terminal attributes
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_termios);
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_termios) == -1) die("tcsetattr");
 }
 
 void enableRawMode() {
 	// Store a copy of the original terminal attributes
-	tcgetattr(STDIN_FILENO, &original_termios);
+	if (tcgetattr(STDIN_FILENO, &original_termios) == -1) die("tcgetattr");
 	// Restore them when the program quits
 	atexit(disableRawMode);
 
@@ -34,7 +40,7 @@ void enableRawMode() {
 	// read() times out after 1/10 of a second
   raw.c_cc[VTIME] = 1;
 
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");
 }
 
 int main() {
@@ -42,7 +48,7 @@ int main() {
 
 	while (1) {
 		char c = '\0';
-		read(STDIN_FILENO, &c, 1);
+		if (read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN) die("read");
 
 		// Loop until 'q' is pressed
 		if (c == 'q') break;
