@@ -27,7 +27,7 @@ typedef struct editorRow {
 } editorRow;
 
 struct editorState {
-  int cursor_row, cursor_column;
+  int cursor_row, cursor_column, cursor_rendered_column;
   int row_offset, column_offset;
   int row_count;
   editorRow *rows;
@@ -37,6 +37,7 @@ struct editorState state;
 void initialiseState() {
   state.cursor_row = 0;
   state.cursor_column = 0;
+  state.cursor_rendered_column = 0;
   state.row_offset = 0;
   state.column_offset = 0;
   state.row_count = 0;
@@ -44,6 +45,17 @@ void initialiseState() {
 }
 
 /*** rows ***/
+
+int renderedColumn(editorRow *row, int column) {
+  int rendered_column = 0;
+  int j;
+  for (j = 0; j < column; j++) {
+    if (row->characters[j] == '\t')
+      rendered_column += (TAB_STOP - 1) - (rendered_column % TAB_STOP);
+    rendered_column++;
+  }
+  return rendered_column;
+}
 
 void renderRow(editorRow *row) {
   int j;
@@ -119,6 +131,14 @@ void initialiseScreen() {
 }
 
 void clampScroll() {
+  state.cursor_rendered_column = 0;
+  if (state.cursor_row < state.row_count) {
+    state.cursor_rendered_column = renderedColumn(
+      &state.rows[state.cursor_row],
+      state.cursor_column
+    );
+  }
+
   // Vertical
   if (state.cursor_row < state.row_offset) {
     state.row_offset = state.cursor_row;
@@ -128,11 +148,11 @@ void clampScroll() {
   }
 
   // Horizontal
-  if (state.cursor_column < state.column_offset) {
-    state.column_offset = state.cursor_column;
+  if (state.cursor_rendered_column < state.column_offset) {
+    state.column_offset = state.cursor_rendered_column;
   }
-  if (state.cursor_column >= state.column_offset + COLS) {
-    state.column_offset = state.cursor_column - COLS + 1;
+  if (state.cursor_rendered_column >= state.column_offset + COLS) {
+    state.column_offset = state.cursor_rendered_column - COLS + 1;
   }
 }
 
@@ -161,7 +181,7 @@ void refreshScreen() {
   drawRows();
   move(
     state.cursor_row - state.row_offset,
-    state.cursor_column - state.column_offset
+    state.cursor_rendered_column - state.column_offset
   );
   refresh();
 }
