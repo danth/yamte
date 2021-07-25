@@ -48,7 +48,7 @@ void refreshScreen() {
 
 /*** input ***/
 
-void moveCursor(char key) {
+void moveCursor(int key) {
 	switch (key) {
 		case 'w':
 			if (state.cursor_row > 0) {
@@ -70,11 +70,17 @@ void moveCursor(char key) {
 				state.cursor_column++;
 			}
 			break;
+		case KEY_HOME:
+			state.cursor_column = 0;
+			break;
+		case KEY_END:
+			state.cursor_column = COLS-1;
+			break;
 	}
 }
 
 void processKey() {
-	char key = getch();
+	int key = getch();
 	switch (key) {
 		case CTRL_KEY('q'):
 			endwin();
@@ -85,6 +91,8 @@ void processKey() {
 		case 's':
 		case 'a':
 		case 'd':
+		case KEY_HOME:
+		case KEY_END:
 			moveCursor(key);
 			break;
 	}
