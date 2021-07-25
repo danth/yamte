@@ -101,12 +101,43 @@ void appendRow(char *line, ssize_t line_length) {
   renderRow(&state.rows[row]);
 }
 
+void rowFree(editorRow *row) {
+  free(row->characters);
+  free(row->rendered_characters);
+}
+
+void rowDelete(int at) {
+  if (at < 0 || at > state.row_count) return;
+  rowFree(&state.rows[at]);
+  memmove(
+    &state.rows[at],
+    &state.rows[at + 1],
+    sizeof(editorRow) * (state.row_count - at - 1)
+  );
+  state.row_count--;
+}
+
 void rowInsertCharacter(editorRow *row, int at, int character) {
   if (at < 0 || at > row->size) at = row->size;
   row->characters = realloc(row->characters, row->size + 2);
   memmove(&row->characters[at + 1], &row->characters[at], row->size - at + 1);
   row->size++;
   row->characters[at] = character;
+  renderRow(row);
+}
+
+void rowDeleteCharacter(editorRow *row, int at) {
+  if (at < 0 || at >= row->size) return;
+  memmove(&row->characters[at], &row->characters[at + 1], row->size - at);
+  row->size--;
+  renderRow(row);
+}
+
+void rowAppendString(editorRow *row, char *text, size_t length) {
+  row->characters = realloc(row->characters, row->size + length + 1);
+  memcpy(&row->characters[row->size], text, length);
+  row->size += length;
+  row->characters[row->size] = '\0';
   renderRow(row);
 }
 
@@ -118,6 +149,22 @@ void insertCharacter(int character) {
   }
   rowInsertCharacter(&state.rows[state.cursor_row], state.cursor_column, character);
   state.cursor_column++;
+}
+
+void deleteCharacter() {
+  if (state.cursor_row == state.row_count) return;
+  if (state.cursor_column == 0 && state.cursor_row == 0) return;
+
+  editorRow *row = &state.rows[state.cursor_row];
+  if (state.cursor_column > 0) {
+    rowDeleteCharacter(row, state.cursor_column - 1);
+    state.cursor_column--;
+  } else {
+    state.cursor_column = state.rows[state.cursor_row - 1].size;
+    rowAppendString(&state.rows[state.cursor_row - 1], row->characters, row->size);
+    rowDelete(state.cursor_row);
+    state.cursor_row--;
+  }
 }
 
 /*** files ***/
@@ -308,6 +355,13 @@ void processKey() {
     case KEY_HOME:
     case KEY_END:
       moveCursor(key);
+      break;
+
+    case KEY_BACKSPACE:
+    case KEY_DC:
+    case CTRL_KEY('h'):
+      if (key == KEY_DC) moveCursor(KEY_RIGHT);
+      deleteCharacter();
       break;
 
     default:
