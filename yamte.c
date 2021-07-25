@@ -1,7 +1,12 @@
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
+#define _GNU_SOURCE
+
 #include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <stdio.h>
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -21,7 +26,7 @@ typedef struct editorRow {
 struct editorState {
 	int cursor_row, cursor_column;
 	int row_count;
-	editorRow row;
+	editorRow *rows;
 };
 struct editorState state;
 
@@ -29,19 +34,40 @@ void initialiseState() {
 	state.cursor_row = 0;
 	state.cursor_column = 0;
 	state.row_count = 0;
+	state.rows = NULL;
 }
 
 /*** files ***/
 
-void openFile() {
-	char *line = "Hello, world!";
-	ssize_t line_length = 13;
+void loadLine(char *line, ssize_t line_length) {
+	state.rows = realloc(state.rows, sizeof(editorRow) * (state.row_count + 1));
 
-	state.row.size = line_length;
-	state.row.chars = malloc(line_length + 1);
-	memcpy(state.row.chars, line, line_length);
-	state.row.chars[line_length] = '\0';
-	state.row_count = 1;
+	int row = state.row_count;
+	state.row_count++;
+
+	state.rows[row].size = line_length;
+	state.rows[row].chars = malloc(line_length + 1);
+	memcpy(state.rows[row].chars, line, line_length);
+	state.rows[row].chars[line_length] = '\0';
+}
+
+void openFile(char *filename) {
+	FILE *file = fopen(filename, "r");
+  if (!file) die("fopen");
+
+	char *line = NULL;
+	size_t line_capacity = 0;
+	ssize_t line_length;
+	while ((line_length = getline(&line, &line_capacity, file)) != -1) {
+		// Remove \r and/or \n from the end of the line
+		while (line_length > 0 && (line[line_length - 1] == '\n'
+                            || line[line_length - 1] == '\r'))
+			line_length--;
+
+		loadLine(line, line_length);
+	}
+	free(line);
+	fclose(file);
 }
 
 /*** output ***/
@@ -61,9 +87,9 @@ void drawRows() {
 		if (row >= state.row_count) {
 			mvaddch(row, 0, '~');
 		} else {
-			int length = state.row.size;
+			int length = state.rows[row].size;
 			if (length > COLS) length = COLS;
-			mvaddnstr(row, 0, state.row.chars, length);
+			mvaddnstr(row, 0, state.rows[row].chars, length);
 		}
 	}
 }
@@ -129,10 +155,13 @@ void processKey() {
 
 /*** main ***/
 
-int main() {
+int main(int argc, char *argv[]) {
 	initialiseState();
 	initialiseScreen();
-	openFile();
+
+	if (argc >= 2) {
+		openFile(argv[1]);
+	}
 
 	while(1) {
 		refreshScreen();
