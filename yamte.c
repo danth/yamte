@@ -51,16 +51,24 @@ void refreshScreen() {
 void moveCursor(char key) {
 	switch (key) {
 		case 'w':
-			state.cursor_row--;
+			if (state.cursor_row > 0) {
+				state.cursor_row--;
+			}
 			break;
 		case 's':
-			state.cursor_row++;
+			if (state.cursor_row < LINES-1) {
+				state.cursor_row++;
+			}
 			break;
 		case 'a':
-			state.cursor_column--;
+			if (state.cursor_column > 0) {
+				state.cursor_column--;
+			}
 			break;
 		case 'd':
-			state.cursor_column++;
+			if (state.cursor_column < COLS-1) {
+				state.cursor_column++;
+			}
 			break;
 	}
 }
