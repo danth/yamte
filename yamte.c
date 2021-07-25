@@ -3,6 +3,8 @@
 #include <termios.h>
 #include <unistd.h>
 
+#define CTRL_KEY(k) ((k) & 0x1f)
+
 struct termios original_termios;
 
 void die(const char *s) {
@@ -51,7 +53,7 @@ int main() {
 		if (read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN) die("read");
 
 		// Loop until 'q' is pressed
-		if (c == 'q') break;
+		if (c == CTRL_KEY('q')) break;
 	};
 
 	return 0;
