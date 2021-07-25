@@ -25,8 +25,8 @@ typedef struct editorRow {
 
 struct editorState {
   int cursor_row, cursor_column;
+  int row_offset, column_offset;
   int row_count;
-  int row_offset;
   editorRow *rows;
 };
 struct editorState state;
@@ -34,8 +34,9 @@ struct editorState state;
 void initialiseState() {
   state.cursor_row = 0;
   state.cursor_column = 0;
-  state.row_count = 0;
   state.row_offset = 0;
+  state.column_offset = 0;
+  state.row_count = 0;
   state.rows = NULL;
 }
 
@@ -84,12 +85,20 @@ void initialiseScreen() {
 }
 
 void clampScroll() {
+  // Vertical
   if (state.cursor_row < state.row_offset) {
     state.row_offset = state.cursor_row;
   }
-
   if (state.cursor_row >= state.row_offset + LINES) {
     state.row_offset = state.cursor_row - LINES + 1;
+  }
+
+  // Horizontal
+  if (state.cursor_column < state.column_offset) {
+    state.column_offset = state.cursor_column;
+  }
+  if (state.cursor_column >= state.column_offset + COLS) {
+    state.column_offset = state.cursor_column - COLS + 1;
   }
 }
 
@@ -100,9 +109,14 @@ void drawRows() {
     if (file_row >= state.row_count) {
       mvaddch(screen_row, 0, '~');
     } else {
-      int length = state.rows[file_row].size;
+      int length = state.rows[file_row].size - state.column_offset;
+      if (length < 0) length = 0;
       if (length > COLS) length = COLS;
-      mvaddnstr(screen_row, 0, state.rows[file_row].chars, length);
+      mvaddnstr(
+        screen_row, 0,
+        &state.rows[file_row].chars[state.column_offset],
+        length
+      );
     }
   }
 }
@@ -111,7 +125,10 @@ void refreshScreen() {
   clear();
   clampScroll();
   drawRows();
-  move(state.cursor_row - state.row_offset, state.cursor_column);
+  move(
+    state.cursor_row - state.row_offset,
+    state.cursor_column - state.column_offset
+  );
   refresh();
 }
 
@@ -135,9 +152,7 @@ void moveCursor(int key) {
       }
       break;
     case 'd':
-      if (state.cursor_column < COLS-1) {
-        state.cursor_column++;
-      }
+      state.cursor_column++;
       break;
     case KEY_HOME:
       state.cursor_column = 0;
