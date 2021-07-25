@@ -26,6 +26,7 @@ typedef struct editorRow {
 struct editorState {
   int cursor_row, cursor_column;
   int row_count;
+  int row_offset;
   editorRow *rows;
 };
 struct editorState state;
@@ -34,6 +35,7 @@ void initialiseState() {
   state.cursor_row = 0;
   state.cursor_column = 0;
   state.row_count = 0;
+  state.row_offset = 0;
   state.rows = NULL;
 }
 
@@ -81,23 +83,35 @@ void initialiseScreen() {
   keypad(stdscr, TRUE); // Replace F1, F2, F3... with token values
 }
 
+void clampScroll() {
+  if (state.cursor_row < state.row_offset) {
+    state.row_offset = state.cursor_row;
+  }
+
+  if (state.cursor_row >= state.row_offset + LINES) {
+    state.row_offset = state.cursor_row - LINES + 1;
+  }
+}
+
 void drawRows() {
-  int row;
-  for (row = 0; row < LINES; row++) {
-    if (row >= state.row_count) {
-      mvaddch(row, 0, '~');
+  int screen_row;
+  for (screen_row = 0; screen_row < LINES; screen_row++) {
+    int file_row = screen_row + state.row_offset;
+    if (file_row >= state.row_count) {
+      mvaddch(screen_row, 0, '~');
     } else {
-      int length = state.rows[row].size;
+      int length = state.rows[file_row].size;
       if (length > COLS) length = COLS;
-      mvaddnstr(row, 0, state.rows[row].chars, length);
+      mvaddnstr(screen_row, 0, state.rows[file_row].chars, length);
     }
   }
 }
 
 void refreshScreen() {
   clear();
+  clampScroll();
   drawRows();
-  move(state.cursor_row, state.cursor_column);
+  move(state.cursor_row - state.row_offset, state.cursor_column);
   refresh();
 }
 
@@ -111,7 +125,7 @@ void moveCursor(int key) {
       }
       break;
     case 's':
-      if (state.cursor_row < LINES-1) {
+      if (state.cursor_row < state.row_count) {
         state.cursor_row++;
       }
       break;
