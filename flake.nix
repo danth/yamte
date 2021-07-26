@@ -12,7 +12,7 @@
           name = "yamte";
           src = ./.;
           buildInputs = with pkgs; [ ncurses ];
-          buildPhase = "cc yamte.c -o yamte -Wall -Wextra -pedantic -std=c99 -lncurses";
+          buildPhase = "g++ yamte.cpp -o yamte -Wall -Wextra -pedantic -lncurses";
           installPhase = "install -D yamte $out/bin/yamte";
         };
         defaultPackage = packages.yamte;
