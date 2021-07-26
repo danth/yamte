@@ -13,17 +13,83 @@
 
 /*** state ***/
 
-typedef struct editorRow {
-  std::string characters;
-  std::string rendered_characters;
-} editorRow;
+class Row {
+  private:
+    std::string text;
+    std::string rendered;
+
+    void render() {
+      rendered = "";
+      int j;
+      for (j = 0; j < text.size(); j++) {
+        if (text[j] == '\t') {
+          // Replace tabs with spaces up to the next tab stop
+          rendered.push_back(' ');
+          while (rendered.size() % TAB_STOP != 0) rendered.push_back(' ');
+        } else {
+          rendered.push_back(text[j]);
+        }
+      }
+    }
+
+  public:
+    std::string getText() {
+      return text;
+    }
+
+    std::string getRendered() {
+      return rendered;
+    }
+
+    int size() {
+      return text.size();
+    }
+
+    void setText(std::string t) {
+      text = t;
+      render();
+    }
+
+    void appendText(std::string t) {
+      text.append(t);
+      render();
+    }
+
+    void resizeText(int length) {
+      text.resize(length);
+      render();
+    }
+
+    void insertCharacter(int at, int character) {
+      if (at < 0 || at > text.size()) at = text.size();
+      text.insert(text.begin() + at, character);
+      render();
+    }
+
+    void deleteCharacter(int at) {
+      if (at < 0 || at >= text.size()) return;
+      text.erase(text.begin() + at);
+      render();
+    }
+
+    int renderedColumn(int column) {
+      int rendered_column = 0;
+      int j;
+      for (j = 0; j < column; j++) {
+        if (text[j] == '\t')
+          rendered_column += (TAB_STOP - 1) - (rendered_column % TAB_STOP);
+        rendered_column++;
+      }
+      return rendered_column;
+    }
+};
 
 struct editorState {
   int editor_lines;
   int cursor_row, cursor_column, cursor_rendered_column;
   int row_offset, column_offset;
   std::string filename;
-  std::vector <editorRow> rows;
+  std::vector <Row> rows;
 };
 struct editorState state;
 
@@ -38,39 +104,10 @@ void initialiseState() {
 
 /*** rows ***/
 
-int renderedColumn(editorRow row, int column) {
-  int rendered_column = 0;
-  int j;
-  for (j = 0; j < column; j++) {
-    if (row.characters[j] == '\t')
-      rendered_column += (TAB_STOP - 1) - (rendered_column % TAB_STOP);
-    rendered_column++;
-  }
-  return rendered_column;
-}
-
-void renderRow(editorRow *row) {
-  row->rendered_characters = "";
-  int j;
-  for (j = 0; j < row->characters.size(); j++) {
-    if (row->characters[j] == '\t') {
-      // Replace tabs with spaces up to the next tab stop
-      row->rendered_characters.push_back(' ');
-      while (row->rendered_characters.size() % TAB_STOP != 0)
-        row->rendered_characters.push_back(' ');
-    } else {
-      row->rendered_characters.push_back(row->characters[j]);
-    }
-  }
-}
-
 void rowInsert(int at, std::string text) {
   if (at < 0 || at > state.rows.size()) return;
-
-  editorRow row;
-  row.characters = text;
-  renderRow(&row);
-
+  Row row;
+  row.setText(text);
   state.rows.insert(state.rows.begin() + at, row);
 }
 
@@ -79,30 +116,13 @@ void rowDelete(int at) {
   state.rows.erase(state.rows.begin() + at);
 }
 
-void rowInsertCharacter(editorRow *row, int at, int character) {
-  if (at < 0 || at > row->characters.size()) at = row->characters.size();
-  row->characters.insert(row->characters.begin() + at, character);
-  renderRow(row);
-}
-
-void rowDeleteCharacter(editorRow *row, int at) {
-  if (at < 0 || at >= row->characters.size()) return;
-  row->characters.erase(row->characters.begin() + at);
-  renderRow(row);
-}
-
-void rowAppendString(editorRow *row, std::string text) {
-  row->characters.append(text);
-  renderRow(row);
-}
-
 /*** editor operations ***/
 
 void insertCharacter(int character) {
   if (state.cursor_row == state.rows.size()) {
     rowInsert(state.rows.size(), "");
   }
-  rowInsertCharacter(&state.rows[state.cursor_row], state.cursor_column, character);
+  state.rows[state.cursor_row].insertCharacter(state.cursor_column, character);
   state.cursor_column++;
 }
 
@@ -110,13 +130,14 @@ void deleteCharacter() {
   if (state.cursor_row == state.rows.size()) return;
   if (state.cursor_column == 0 && state.cursor_row == 0) return;
 
-  editorRow *row = &state.rows[state.cursor_row];
+  Row *row = &state.rows[state.cursor_row];
   if (state.cursor_column > 0) {
-    rowDeleteCharacter(row, state.cursor_column - 1);
+    row->deleteCharacter(state.cursor_column - 1);
     state.cursor_column--;
   } else {
-    state.cursor_column = state.rows[state.cursor_row - 1].characters.size();
-    rowAppendString(&state.rows[state.cursor_row - 1], row->characters);
+    Row *previous_row = &state.rows[state.cursor_row - 1];
+    state.cursor_column = previous_row->size();
+    previous_row->appendText(row->getText());
     rowDelete(state.cursor_row);
     state.cursor_row--;
   }
@@ -126,11 +147,10 @@ void insertNewline() {
   if (state.cursor_column == 0) {
     rowInsert(state.cursor_row, "");
   } else {
-    editorRow *row = &state.rows[state.cursor_row];
-    rowInsert(state.cursor_row + 1, row->characters.substr(state.cursor_column));
+    Row *row = &state.rows[state.cursor_row];
+    rowInsert(state.cursor_row + 1, row->getText().substr(state.cursor_column));
     row = &state.rows[state.cursor_row];
-    row->characters.resize(state.cursor_column);
-    renderRow(row);
+    row->resizeText(state.cursor_column);
   }
   state.cursor_row++;
   state.cursor_column = 0;
@@ -166,10 +186,8 @@ void initialiseScreen() {
 void clampScroll() {
   state.cursor_rendered_column = 0;
   if (state.cursor_row < state.rows.size()) {
-    state.cursor_rendered_column = renderedColumn(
-      state.rows[state.cursor_row],
-      state.cursor_column
-    );
+    state.cursor_rendered_column =
+      state.rows[state.cursor_row].renderedColumn(state.cursor_column);
   }
 
   // Vertical
@@ -196,7 +214,7 @@ void drawRows() {
     if (file_row >= state.rows.size()) {
       mvaddch(screen_row, 0, '~');
     } else {
-      std::string rendered = state.rows[file_row].rendered_characters;
+      std::string rendered = state.rows[file_row].getRendered();
       std::string visible_rendered = rendered.substr(
           state.column_offset, state.column_offset + COLS);
       mvaddstr(screen_row, 0, visible_rendered.c_str());
@@ -255,18 +273,18 @@ void moveCursor(int key) {
       // Go to the last column of the previous line
       else if (state.cursor_row > 0) {
         state.cursor_row--;
-        state.cursor_column = state.rows[state.cursor_row].characters.size();
+        state.cursor_column = state.rows[state.cursor_row].size();
       }
       break;
     case KEY_RIGHT:
       if (state.cursor_row < state.rows.size()) {
-        editorRow row = state.rows[state.cursor_row];
+        Row row = state.rows[state.cursor_row];
         // Move right unless we are at the last column
-        if (state.cursor_column < row.characters.size()) {
+        if (state.cursor_column < row.size()) {
           state.cursor_column++;
         }
         // Go to the first column of the next line
-        else if (state.cursor_column == row.characters.size()) {
+        else if (state.cursor_column == row.size()) {
           state.cursor_row++;
           state.cursor_column = 0;
         }
@@ -279,7 +297,7 @@ void moveCursor(int key) {
     case KEY_END:
       // Move to the right of the screen
       if (state.cursor_row < state.rows.size()) {
-        state.cursor_column = state.rows[state.cursor_row].characters.size();
+        state.cursor_column = state.rows[state.cursor_row].size();
       }
       break;
   }
@@ -287,7 +305,7 @@ void moveCursor(int key) {
   if (state.cursor_row > state.rows.size()) {
     state.cursor_column = 0;
   } else {
-    int row_length = state.rows[state.cursor_row].characters.size();
+    int row_length = state.rows[state.cursor_row].size();
     if (state.cursor_column > row_length) state.cursor_column = row_length;
   }
 }
