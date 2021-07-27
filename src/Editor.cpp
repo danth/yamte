@@ -71,6 +71,8 @@ void Editor::openFile(std::string f) {
     file.close();
 
     status_message = "Opened " + filename;
+  } else {
+    status_message = "Failed to open " + filename;
   }
 }
 
@@ -85,6 +87,8 @@ void Editor::saveFile() {
     file.close();
 
     status_message = "Saved " + filename;
+  } else {
+    status_message = "Failed to save " + filename;
   }
 }
 
