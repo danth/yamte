@@ -48,9 +48,11 @@ void Display::drawRows() {
       mvaddch(screen_row, 0, '~');
     } else {
       std::string rendered = editor->getBuffer()->getRow(file_row)->getRendered();
-      std::string visible_rendered = rendered.substr(
-          column_offset, column_offset + COLS);
-      mvaddstr(screen_row, 0, visible_rendered.c_str());
+      if (column_offset < rendered.size()) {
+        std::string visible_rendered = rendered.substr(
+            column_offset, column_offset + COLS);
+        mvaddstr(screen_row, 0, visible_rendered.c_str());
+      }
     }
   }
 }
