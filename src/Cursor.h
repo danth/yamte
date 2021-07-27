@@ -9,6 +9,13 @@ class Cursor {
 		int cursor_row;
 		int cursor_column;
 
+		void moveLeft();
+		void moveRight();
+		void moveUp();
+		void moveDown();
+		void moveHome();
+		void moveEnd();
+
 	public:
 		Cursor(Buffer* b);
 		int getRow();
