@@ -5,13 +5,13 @@
 
 class Display {
 	private:
-    Editor editor;
+    Editor* editor;
     int lines;
     int row_offset;
     int column_offset;
 
 	public:
-		Display(Editor e);
+		Display(Editor* e);
     void initialiseScreen();
     void clampScroll();
     void drawRows();

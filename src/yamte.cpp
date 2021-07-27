@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[]) {
   Editor editor;
-  Display display(editor);
+  Display display(&editor);
   display.initialiseScreen();
 
   if (argc >= 2) {
