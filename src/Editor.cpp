@@ -21,13 +21,17 @@ void Editor::insertNewline() {
 }
 
 void Editor::deleteCharacter() {
-  if (cursor.getColumn() > 0) {
+  int row = cursor.getRow();
+  int column = cursor.getColumn();
+
+  if (column > 0) {
     cursor.adjustColumn(-1);
   } else {
-    cursor.setColumn(buffer.getRow(cursor.getRow() - 1)->size());
+    cursor.setColumn(buffer.getRow(row - 1)->size());
     cursor.adjustRow(-1);
   }
-  buffer.deleteCharacter(cursor.getRow(), cursor.getColumn());
+
+  buffer.deleteCharacter(row, column);
 }
 
 Editor::Editor() : cursor(&buffer) {
