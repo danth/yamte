@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Row.h"
+#include "Buffer.h"
 #include "Cursor.h"
 #include <string>
 

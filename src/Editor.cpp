@@ -1,5 +1,4 @@
 #include "Editor.h"
-#include "Row.h"
 #include "Buffer.h"
 #include "Cursor.h"
 #include <ncurses.h>
