@@ -62,15 +62,17 @@ void Display::drawStatus() {
 
   // Fill with spaces to create background
   int j;
-  for (j = 0; j < COLS; j++) mvaddch(LINES-1, j, ' ');
+  for (j = 0; j < COLS; j++) mvaddch(LINES-2, j, ' ');
 
   // Overwrite some of the spaces with the status
-  mvprintw(LINES-1, 0, "%.40s - %d lines",
+  mvprintw(LINES-2, 0, "%.40s - %d lines",
     editor->isFileOpen() ? editor->getFilename().c_str() : "[no name]",
     editor->getBuffer()->countRows()
   );
 
   attroff(A_STANDOUT);
+
+  mvaddnstr(LINES-1, 0, editor->getStatusMessage().c_str(), COLS);
 }
 
 void Display::refreshScreen() {

@@ -54,6 +54,10 @@ std::string Editor::getFilename() {
   return filename;
 }
 
+std::string Editor::getStatusMessage() {
+  return status_message;
+}
+
 void Editor::openFile(std::string f) {
   filename = f;
 
@@ -65,6 +69,8 @@ void Editor::openFile(std::string f) {
       buffer.insertRow(buffer.countRows(), line);
     }
     file.close();
+
+    status_message = "Opened " + filename;
   }
 }
 
@@ -76,8 +82,10 @@ void Editor::saveFile() {
     for (row = 0; row < buffer.countRows(); row++) {
       file << buffer.getRow(row)->getText() << '\n';
     }
+    file.close();
+
+    status_message = "Saved " + filename;
   }
-  file.close();
 }
 
 void Editor::processKey(int key) {
