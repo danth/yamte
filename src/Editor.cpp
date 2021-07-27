@@ -68,11 +68,27 @@ void Editor::openFile(std::string f) {
   }
 }
 
+void Editor::saveFile() {
+  std::fstream file;
+  file.open(filename, std::ios::out);
+  if (file.is_open()) {
+    int row;
+    for (row = 0; row < buffer.countRows(); row++) {
+      file << buffer.getRow(row)->getText() << '\n';
+    }
+  }
+  file.close();
+}
+
 void Editor::processKey(int key) {
   switch (key) {
     case CTRL_KEY('q'):
       endwin();
       exit(0);
+      break;
+
+    case CTRL_KEY('s'):
+      saveFile();
       break;
 
     case KEY_UP:
