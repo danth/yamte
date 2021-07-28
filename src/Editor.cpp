@@ -36,6 +36,7 @@ void Editor::deleteCharacter() {
 
 Editor::Editor() : cursor(&buffer) {
   filename = "";
+  insert_mode = FALSE;
 }
 
 Buffer* Editor::getBuffer() {
@@ -92,7 +93,7 @@ void Editor::saveFile() {
   }
 }
 
-void Editor::processKey(int key) {
+void Editor::processKeyNormal(int key) {
   switch (key) {
     case CTRL_KEY('q'):
       endwin();
@@ -103,13 +104,46 @@ void Editor::processKey(int key) {
       saveFile();
       break;
 
+    case 'e':
+      insert_mode = TRUE;
+      break;
+
+    case 'w':
     case KEY_UP:
+      cursor.moveUp();
+      break;
+
+    case 's':
     case KEY_DOWN:
+      cursor.moveDown();
+      break;
+
+    case 'a':
     case KEY_LEFT:
+      cursor.moveLeft();
+      break;
+
+    case 'd':
     case KEY_RIGHT:
+      cursor.moveRight();
+      break;
+
     case KEY_HOME:
+    case CTRL_KEY('a'):
+      cursor.moveHome();
+      break;
+
     case KEY_END:
-      cursor.move(key);
+    case CTRL_KEY('d'):
+      cursor.moveEnd();
+      break;
+  }
+}
+
+void Editor::processKeyInsert(int key) {
+  switch (key) {
+    case CTRL_KEY('q'):
+      insert_mode = FALSE;
       break;
 
     case '\r':
@@ -119,7 +153,7 @@ void Editor::processKey(int key) {
     case KEY_BACKSPACE:
     case KEY_DC:
     case CTRL_KEY('h'):
-      if (key == KEY_DC) cursor.move(KEY_RIGHT);
+      if (key == KEY_DC) cursor.moveRight();
       deleteCharacter();
       break;
 
@@ -127,4 +161,11 @@ void Editor::processKey(int key) {
       insertCharacter(key);
       break;
   }
+}
+
+void Editor::processKey(int key) {
+  if (insert_mode)
+    processKeyInsert(key);
+  else
+    processKeyNormal(key);
 }

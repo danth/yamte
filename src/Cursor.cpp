@@ -41,6 +41,8 @@ void Cursor::moveLeft() {
     cursor_row--;
     cursor_column = buffer->getRow(cursor_row)->size();
   }
+
+  clampMove();
 }
 
 void Cursor::moveRight() {
@@ -54,19 +56,27 @@ void Cursor::moveRight() {
       cursor_column = 0;
     }
   }
+
+  clampMove();
 }
 
 void Cursor::moveUp() {
   if (cursor_row > 0) cursor_row--;
+
+  clampMove();
 }
 
 void Cursor::moveDown() {
   // Move down unless we are on the last line
   if (cursor_row < buffer->countRows()) cursor_row++;
+
+  clampMove();
 }
 
 void Cursor::moveHome() {
   cursor_column = 0;
+
+  clampMove();
 }
 
 void Cursor::moveEnd() {
@@ -74,30 +84,11 @@ void Cursor::moveEnd() {
   if (cursor_row < buffer->countRows()) {
     cursor_column = buffer->getRow(cursor_row)->size();
   }
+
+  clampMove();
 }
 
-void Cursor::move(int key) {
-  switch (key) {
-    case KEY_LEFT:
-      moveLeft();
-      break;
-    case KEY_RIGHT:
-      moveRight();
-      break;
-    case KEY_UP:
-      moveUp();
-      break;
-    case KEY_DOWN:
-      moveDown();
-      break;
-    case KEY_HOME:
-      moveHome();
-      break;
-    case KEY_END:
-      moveEnd();
-      break;
-  }
-
+void Cursor::clampMove() {
   if (cursor_row > buffer->countRows()) {
     cursor_column = 0;
   } else {

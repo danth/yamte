@@ -11,10 +11,14 @@ class Editor {
 		Cursor cursor;
 		std::string filename;
     std::string status_message;
+		bool insert_mode;
 
 		void insertCharacter(char character);
 		void insertNewline();
 		void deleteCharacter();
+
+		void processKeyNormal(int key);
+		void processKeyInsert(int key);
 	
 	public:
 		Editor();
