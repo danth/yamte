@@ -100,7 +100,7 @@ void Editor::processKeyNormal(int key) {
       exit(0);
       break;
 
-    case CTRL_KEY('s'):
+    case CTRL_KEY('o'):
       saveFile();
       break;
 
@@ -136,6 +136,14 @@ void Editor::processKeyNormal(int key) {
     case KEY_END:
     case CTRL_KEY('d'):
       cursor.moveEnd();
+      break;
+
+    case CTRL_KEY('w'):
+      cursor.moveTop();
+      break;
+
+    case CTRL_KEY('s'):
+      cursor.moveBottom();
       break;
   }
 }

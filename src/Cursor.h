@@ -28,4 +28,6 @@ class Cursor {
 		void moveDown();
 		void moveHome();
 		void moveEnd();
+		void moveTop();
+		void moveBottom();
 };

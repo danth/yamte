@@ -88,6 +88,18 @@ void Cursor::moveEnd() {
   clampMove();
 }
 
+void Cursor::moveTop() {
+  cursor_row = 0;
+
+  clampMove();
+}
+
+void Cursor::moveBottom() {
+  cursor_row = buffer->countRows();
+
+  clampMove();
+}
+
 void Cursor::clampMove() {
   if (cursor_row >= buffer->countRows()) {
     cursor_column = 0;
