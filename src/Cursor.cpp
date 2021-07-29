@@ -89,7 +89,7 @@ void Cursor::moveEnd() {
 }
 
 void Cursor::clampMove() {
-  if (cursor_row > buffer->countRows()) {
+  if (cursor_row >= buffer->countRows()) {
     cursor_column = 0;
   } else {
     int row_length = buffer->getRow(cursor_row)->size();
