@@ -6,7 +6,6 @@
 
 Display::Display(Editor* e) {
   editor = e;
-  lines = LINES - 1;
   row_offset = 0;
   column_offset = 0;
 }
@@ -18,9 +17,17 @@ void Display::initialiseScreen() {
   nonl(); // Disable translation of \r into \n
   intrflush(stdscr, FALSE);
   keypad(stdscr, TRUE); // Replace F1, F2, F3... with token values
+  refresh();
+
+  buffer_window = newwin(LINES-2, COLS, 0, 0);
+  status_window = newwin(1, COLS, LINES-2, 0);
+  message_window = newwin(1, COLS, LINES-1, 0);
 }
 
 void Display::clampScroll() {
+  int lines, columns;
+  getmaxyx(buffer_window, lines, columns);
+
   // Vertical
   int cursor_row = editor->getCursor()->getRow();
 
@@ -35,58 +42,83 @@ void Display::clampScroll() {
 
   if (rendered_column < column_offset)
     column_offset = rendered_column;
-  if (rendered_column >= column_offset + COLS)
-    column_offset = rendered_column - COLS + 1;
+  if (rendered_column >= column_offset + columns)
+    column_offset = rendered_column - columns + 1;
 }
 
-void Display::drawRows() {
+void Display::drawBuffer() {
+  wclear(buffer_window);
+
+  int lines, columns;
+  getmaxyx(buffer_window, lines, columns);
+
   int screen_row;
   for (screen_row = 0; screen_row < lines; screen_row++) {
     int file_row = screen_row + row_offset;
 
     if (file_row >= editor->getBuffer()->countRows()) {
-      mvaddch(screen_row, 0, '~');
+      mvwaddch(buffer_window, screen_row, 0, '~');
     } else {
       std::string rendered = editor->getBuffer()->getRow(file_row)->getRendered();
       if (column_offset < rendered.size()) {
         std::string visible_rendered = rendered.substr(
-            column_offset, column_offset + COLS);
-        mvaddstr(screen_row, 0, visible_rendered.c_str());
+            column_offset, column_offset + columns);
+        mvwaddstr(buffer_window, screen_row, 0, visible_rendered.c_str());
       }
     }
   }
+
+  wnoutrefresh(buffer_window);
 }
 
 void Display::drawStatus() {
-  attron(A_STANDOUT);
+  wclear(status_window);
+
+  int lines, columns;
+  getmaxyx(status_window, lines, columns);
+
+  wattron(status_window, A_STANDOUT);
 
   // Fill with spaces to create background
   int j;
-  for (j = 0; j < COLS; j++) mvaddch(LINES-2, j, ' ');
+  for (j = 0; j < columns; j++) mvwaddch(status_window, 0, j, ' ');
 
   // Overwrite some of the spaces with the status
-  mvprintw(LINES-2, 0, "%.40s - %d lines - %s mode",
+  mvwprintw(status_window, 0, 0, "%.40s - %d lines - %s mode",
     editor->isFileOpen() ? editor->getFilename().c_str() : "[no name]",
     editor->getBuffer()->countRows(),
     editor->getModeName().c_str()
   );
 
-  attroff(A_STANDOUT);
+  wattroff(status_window, A_STANDOUT);
 
-  mvaddnstr(LINES-1, 0, editor->getStatusMessage().c_str(), COLS);
+  wnoutrefresh(status_window);
+}
+
+void Display::drawMessage() {
+  wclear(message_window);
+
+  int lines, columns;
+  getmaxyx(message_window, lines, columns);
+
+  mvwaddnstr(message_window, 0, 0, editor->getStatusMessage().c_str(), columns);
+
+  wnoutrefresh(message_window);
 }
 
 void Display::refreshScreen() {
-  clear();
-  lines = LINES - 1;
   clampScroll();
-  drawRows();
+
+  drawBuffer();
   drawStatus();
+  drawMessage();
+
   move(
     editor->getCursor()->getRow() - row_offset,
     editor->getBuffer()->getRow(editor->getCursor()->getRow())->renderedColumn(editor->getCursor()->getColumn()) - column_offset
   );
-  refresh();
+
+  doupdate();
 }
 
 int Display::getKey() {
