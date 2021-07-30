@@ -23,8 +23,8 @@ void Display::initialiseScreen() {
   refresh();
 
   status_window = newwin(1, COLS, 0, 0);
-  sidebar_window = newwin(LINES-2, 3, 1, COLS-3);
-  buffer_window = newwin(LINES-2, COLS-3, 1, 0);
+  sidebar_window = newwin(LINES-2, 4, 1, 0);
+  buffer_window = newwin(LINES-2, COLS-4, 1, 4);
   message_window = newwin(1, COLS, LINES-1, 0);
 }
 
@@ -64,6 +64,8 @@ void Display::drawSidebar(Buffer* buffer) {
     } else {
       mvwprintw(sidebar_window, screen_row, 0, "%.3i", file_row);
     }
+
+    mvwaddch(sidebar_window, screen_row, 3, ' ');
   }
 
   wattroff(sidebar_window, WA_STANDOUT);
