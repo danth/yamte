@@ -17,14 +17,14 @@
             name = "yamte";
             src = ./.;
             buildInputs = with pkgs; [ ncurses ];
-            buildPhase = "g++ src/*.cpp -o yamte -Wall -Wextra -pedantic -lncurses";
+            buildPhase = "g++ src/*.cpp -o yamte -D_XOPEN_SOURCE_EXTENDED -Wall -Wextra -pedantic -lncursesw";
             installPhase = "install -D yamte $out/bin/yamte";
           };
           yamte-debug = pkgs.stdenv.mkDerivation {
             name = "yamte-debug";
             src = ./.;
             buildInputs = with pkgs; [ ncurses ];
-            buildPhase = "g++ src/*.cpp -o yamte -ggdb -O0 -Wall -Wextra -pedantic -lncurses";
+            buildPhase = "g++ src/*.cpp -o yamte -D_XOPEN_SOURCE_EXTENDED -ggdb -O0 -Wall -Wextra -pedantic -lncursesw";
             installPhase = "install -D yamte $out/bin/yamte";
             dontStrip = true;
           };

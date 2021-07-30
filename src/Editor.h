@@ -18,12 +18,12 @@ class Editor {
 		void drawBuffer();
 		void drawCursor();
 
-		void insertCharacter(char character);
+		void insertCharacter(wchar_t character);
 		void insertNewline();
 		void deleteCharacter();
 
-		void processKeyNormal(int key);
-		void processKeyInsert(int key);
+		void processKeyNormal(wchar_t key);
+		void processKeyInsert(wchar_t key);
 	
 	public:
 		Editor();

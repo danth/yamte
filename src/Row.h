@@ -5,18 +5,18 @@
 
 class Row {
 	private:
-		std::string text;
-		std::string rendered;
+		std::wstring text;
+		std::wstring rendered;
 		void render();
 	
 	public:
-		std::string getText();
-		std::string getRendered();
+		std::wstring getText();
+		std::wstring getRendered();
 		int size();
-		void setText(std::string t);
-		void appendText(std::string t);
+		void setText(std::wstring t);
+		void appendText(std::wstring t);
 		void resizeText(int length);
-		void insertCharacter(int at, int character);
+		void insertCharacter(int at, wchar_t character);
 		void deleteCharacter(int at);
 		int renderedColumn(int column);
 };

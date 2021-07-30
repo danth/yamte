@@ -2,6 +2,7 @@
 #include "Cursor.h"
 #include "Buffer.h"
 #include <ncurses.h>
+#include <locale.h>
 #include <string>
 
 
@@ -11,6 +12,8 @@ Display::Display() {
 }
 
 void Display::initialiseScreen() {
+  setlocale(LC_ALL, "");
+
   initscr();
   raw(); // Disable line buffering
   noecho(); // Don't echo typed characters
@@ -58,11 +61,11 @@ void Display::drawBuffer(Cursor* cursor, Buffer* buffer) {
     if (file_row >= buffer->countRows()) {
       mvwaddch(buffer_window, screen_row, 0, '~');
     } else {
-      std::string rendered = buffer->getRow(file_row)->getRendered();
+      std::wstring rendered = buffer->getRow(file_row)->getRendered();
       if (column_offset < rendered.size()) {
-        std::string visible_rendered = rendered.substr(
+        std::wstring visible_rendered = rendered.substr(
             column_offset, column_offset + columns);
-        mvwaddstr(buffer_window, screen_row, 0, visible_rendered.c_str());
+        mvwaddwstr(buffer_window, screen_row, 0, visible_rendered.c_str());
       }
     }
   }
@@ -95,7 +98,7 @@ void Display::drawStatus(Buffer* buffer, std::string filename, std::string mode)
   int lines, columns;
   getmaxyx(status_window, lines, columns);
 
-  wattron(status_window, A_STANDOUT);
+  wattron(status_window, WA_STANDOUT);
 
   // Fill with spaces to create background
   int j;
@@ -110,7 +113,7 @@ void Display::drawStatus(Buffer* buffer, std::string filename, std::string mode)
     mode.c_str()
   );
 
-  wattroff(status_window, A_STANDOUT);
+  wattroff(status_window, WA_STANDOUT);
 
   wrefresh(status_window);
 }
@@ -121,7 +124,7 @@ void Display::drawMessage(std::string message) {
   int lines, columns;
   getmaxyx(message_window, lines, columns);
 
-  wattron(message_window, A_STANDOUT);
+  wattron(message_window, WA_STANDOUT);
 
   // Fill with spaces to create background
   int j;
@@ -129,11 +132,13 @@ void Display::drawMessage(std::string message) {
 
   mvwaddnstr(message_window, 0, 0, message.c_str(), columns);
 
-  wattroff(message_window, A_STANDOUT);
+  wattroff(message_window, WA_STANDOUT);
 
   wrefresh(message_window);
 }
 
-int Display::getKey() {
-  return getch();
+wchar_t Display::getKey() {
+  wint_t key;
+  get_wch(&key);
+  return key;
 }

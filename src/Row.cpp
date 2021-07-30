@@ -5,7 +5,7 @@
 
 
 void Row::render() {
-  rendered = "";
+  rendered.clear();
   int j;
   for (j = 0; j < text.size(); j++) {
     if (text[j] == '\t') {
@@ -18,11 +18,11 @@ void Row::render() {
   }
 }
 
-std::string Row::getText() {
+std::wstring Row::getText() {
   return text;
 }
 
-std::string Row::getRendered() {
+std::wstring Row::getRendered() {
   return rendered;
 }
 
@@ -30,12 +30,12 @@ int Row::size() {
   return text.size();
 }
 
-void Row::setText(std::string t) {
+void Row::setText(std::wstring t) {
   text = t;
   render();
 }
 
-void Row::appendText(std::string t) {
+void Row::appendText(std::wstring t) {
   text.append(t);
   render();
 }
@@ -45,7 +45,7 @@ void Row::resizeText(int length) {
   render();
 }
 
-void Row::insertCharacter(int at, int character) {
+void Row::insertCharacter(int at, wchar_t character) {
   if (at < 0 || at > text.size()) at = text.size();
 
   text.insert(text.begin() + at, character);

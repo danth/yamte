@@ -25,5 +25,5 @@ class Display {
     void drawStatus(Buffer* buffer, std::string filename, std::string mode);
     void drawMessage(std::string message);
 
-    int getKey();
+    wchar_t getKey();
 };

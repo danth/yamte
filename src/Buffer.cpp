@@ -2,6 +2,9 @@
 #include "Row.h"
 #include <vector>
 #include <string>
+#include <locale>
+#include <codecvt>
+#include <fstream>
 
 int Buffer::countRows() {
   return rows.size();
@@ -11,7 +14,7 @@ Row* Buffer::getRow(int at) {
   return &rows[at];
 }
 
-void Buffer::insertRow(int at, std::string text) {
+void Buffer::insertRow(int at, std::wstring text) {
   if (at < 0 || at > rows.size()) return;
 
   Row row;
@@ -25,14 +28,35 @@ void Buffer::deleteRow(int at) {
   rows.erase(rows.begin() + at);
 }
 
-void Buffer::insertCharacter(int row, int column, char character) {
-  if (row == rows.size()) insertRow(rows.size(), "");
+void Buffer::fromFile(std::fstream* file) {
+  std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+
+  std::string line;
+  while(getline(*file, line)) {
+    std::wstring w_line = converter.from_bytes(line);
+    insertRow(rows.size(), w_line);
+  }
+}
+
+void Buffer::toFile(std::fstream* file) {
+  std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+
+  int row;
+  for (row = 0; row < rows.size(); row++) {
+    std::wstring w_text = getRow(row)->getText();
+    std::string text = converter.to_bytes(w_text);
+    *file << text << '\n';
+  }
+}
+
+void Buffer::insertCharacter(int row, int column, wchar_t character) {
+  if (row == rows.size()) insertRow(rows.size(), L"");
   getRow(row)->insertCharacter(column, character);
 }
 
 void Buffer::insertNewline(int row, int column) {
   if (column == 0) {
-    insertRow(row, "");
+    insertRow(row, L"");
   } else {
     insertRow(row + 1, getRow(row)->getText().substr(column));
     getRow(row)->resizeText(column);

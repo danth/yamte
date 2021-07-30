@@ -10,7 +10,7 @@
 #define CTRL_KEY(k) ((k) & 0x1f)
 
 
-void Editor::insertCharacter(char character) {
+void Editor::insertCharacter(wchar_t character) {
   buffer.insertCharacter(cursor.getRow(), cursor.getColumn(), character);
   cursor.adjustColumn(1);
 }
@@ -69,10 +69,7 @@ void Editor::openFile(std::string f) {
   std::fstream file;
   file.open(filename, std::ios::in);
   if (file.is_open()) {
-    std::string line;
-    while(getline(file, line)) {
-      buffer.insertRow(buffer.countRows(), line);
-    }
+    buffer.fromFile(&file);
     file.close();
 
     drawBuffer();
@@ -89,10 +86,7 @@ void Editor::saveFile() {
   std::fstream file;
   file.open(filename, std::ios::out);
   if (file.is_open()) {
-    int row;
-    for (row = 0; row < buffer.countRows(); row++) {
-      file << buffer.getRow(row)->getText() << '\n';
-    }
+    buffer.toFile(&file);
     file.close();
 
     display.drawMessage("Saved " + filename);
@@ -101,7 +95,7 @@ void Editor::saveFile() {
   }
 }
 
-void Editor::processKeyNormal(int key) {
+void Editor::processKeyNormal(wchar_t key) {
   switch (key) {
     case CTRL_KEY('q'):
       endwin();
@@ -160,7 +154,7 @@ void Editor::processKeyNormal(int key) {
   drawCursor();
 }
 
-bool isKeyPrintable(int key) {
+bool isKeyPrintable(wchar_t key) {
   return (
     key > 31 && key < 255
     && key != 127
@@ -172,7 +166,7 @@ bool isKeyPrintable(int key) {
   );
 }
 
-void Editor::processKeyInsert(int key) {
+void Editor::processKeyInsert(wchar_t key) {
   switch (key) {
     case CTRL_KEY('q'):
       input_mode = FALSE;
@@ -225,7 +219,7 @@ void Editor::processKeyInsert(int key) {
 }
 
 void Editor::processKey() {
-  int key = display.getKey();
+  wchar_t key = display.getKey();
 
   if (input_mode)
     processKeyInsert(key);
