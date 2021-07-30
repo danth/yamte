@@ -19,8 +19,8 @@ void Display::initialiseScreen() {
   keypad(stdscr, TRUE); // Replace F1, F2, F3... with token values
   refresh();
 
-  buffer_window = newwin(LINES-2, COLS, 0, 0);
-  status_window = newwin(1, COLS, LINES-2, 0);
+  status_window = newwin(1, COLS, 0, 0);
+  buffer_window = newwin(LINES-2, COLS, 1, 0);
   message_window = newwin(1, COLS, LINES-1, 0);
 }
 
@@ -101,7 +101,15 @@ void Display::drawMessage() {
   int lines, columns;
   getmaxyx(message_window, lines, columns);
 
+  wattron(message_window, A_STANDOUT);
+
+  // Fill with spaces to create background
+  int j;
+  for (j = 0; j < columns; j++) mvwaddch(message_window, 0, j, ' ');
+
   mvwaddnstr(message_window, 0, 0, editor->getStatusMessage().c_str(), columns);
+
+  wattroff(message_window, A_STANDOUT);
 
   wnoutrefresh(message_window);
 }
