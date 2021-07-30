@@ -81,6 +81,14 @@ void Display::drawCursor(Cursor* cursor, Buffer* buffer) {
   wrefresh(buffer_window);
 }
 
+std::string basename(std::string path) {
+  size_t last_separator = path.find_last_of("/\\");
+  if (last_separator != std::string::npos)
+    return path.substr(last_separator + 1);
+  else
+    return path;
+}
+
 void Display::drawStatus(Buffer* buffer, std::string filename, std::string mode) {
   wclear(status_window);
 
@@ -97,7 +105,7 @@ void Display::drawStatus(Buffer* buffer, std::string filename, std::string mode)
   mvwprintw(
     status_window, 0, 0,
     "%.40s - %d lines - %s mode",
-    filename.size() ? filename.c_str() : "[No name]",
+    filename.size() ? basename(filename).c_str() : "[No name]",
     buffer->countRows(),
     mode.c_str()
   );
