@@ -25,6 +25,9 @@ void Editor::deleteCharacter() {
   int row = cursor.getRow();
   int column = cursor.getColumn();
 
+  if (row == buffer.countRows()) return;
+  if (row == 0 && column == 0) return;
+
   if (column > 0) {
     cursor.adjustColumn(-1);
   } else {
