@@ -28,6 +28,10 @@ void Buffer::deleteRow(int at) {
   rows.erase(rows.begin() + at);
 }
 
+bool Buffer::isDirty() {
+  return dirty > 0;
+}
+
 void Buffer::fromFile(std::fstream* file) {
   std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
 
@@ -36,6 +40,8 @@ void Buffer::fromFile(std::fstream* file) {
     std::wstring w_line = converter.from_bytes(line);
     insertRow(rows.size(), w_line);
   }
+
+  dirty = 0;
 }
 
 void Buffer::toFile(std::fstream* file) {
@@ -47,11 +53,15 @@ void Buffer::toFile(std::fstream* file) {
     std::string text = converter.to_bytes(w_text);
     *file << text << '\n';
   }
+
+  dirty = 0;
 }
 
 void Buffer::insertCharacter(int row, int column, wchar_t character) {
   if (row == rows.size()) insertRow(rows.size(), L"");
   getRow(row)->insertCharacter(column, character);
+
+  dirty++;
 }
 
 void Buffer::insertNewline(int row, int column) {
@@ -61,6 +71,8 @@ void Buffer::insertNewline(int row, int column) {
     insertRow(row + 1, getRow(row)->getText().substr(column));
     getRow(row)->resizeText(column);
   }
+
+  dirty++;
 }
 
 void Buffer::deleteCharacter(int row, int column) {
@@ -73,4 +85,6 @@ void Buffer::deleteCharacter(int row, int column) {
     getRow(row - 1)->appendText(getRow(row)->getText());
     deleteRow(row);
   }
+
+  dirty++;
 }

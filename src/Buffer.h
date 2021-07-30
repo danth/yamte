@@ -9,12 +9,15 @@
 class Buffer {
 	private:
 		std::vector<Row> rows;
+		int dirty = 0;
 	
 	public:
 		int countRows();
 		Row* getRow(int at);
 		void insertRow(int at, std::wstring text);
 		void deleteRow(int at);
+
+		bool isDirty();
 
 		void fromFile(std::fstream* file);
 		void toFile(std::fstream* file);

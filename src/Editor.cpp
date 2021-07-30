@@ -104,6 +104,7 @@ void Editor::processKeyNormal(wchar_t key) {
 
     case CTRL_KEY('o'):
       saveFile();
+      drawStatus();
       break;
 
     case 'e':
