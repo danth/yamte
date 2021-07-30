@@ -170,6 +170,7 @@ void Editor::processKeyInsert(int key) {
     case KEY_BACKSPACE:
     case KEY_DC:
     case CTRL_KEY('h'):
+    case 127:
       if (key == KEY_DC) cursor.moveRight();
       deleteCharacter();
       break;
