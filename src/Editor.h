@@ -2,6 +2,7 @@
 
 #include "Buffer.h"
 #include "Cursor.h"
+#include "Display.h"
 #include <string>
 
 
@@ -9,9 +10,13 @@ class Editor {
 	private:
     Buffer buffer;
 		Cursor cursor;
+		Display display;
 		std::string filename;
-    std::string status_message;
 		bool insert_mode;
+
+		void drawStatus();
+		void drawBuffer();
+		void drawCursor();
 
 		void insertCharacter(char character);
 		void insertNewline();
@@ -22,13 +27,11 @@ class Editor {
 	
 	public:
 		Editor();
-		Buffer* getBuffer();
-		Cursor* getCursor();
-		bool isFileOpen();
-		std::string getFilename();
-		std::string getStatusMessage();
-		std::string getModeName();
+
+		void initialiseScreen();
+
 		void openFile(std::string f);
 		void saveFile();
-		void processKey(int key);
+
+		void processKey();
 };

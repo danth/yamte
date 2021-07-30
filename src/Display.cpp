@@ -1,11 +1,11 @@
 #include "Display.h"
-#include "Editor.h"
+#include "Cursor.h"
+#include "Buffer.h"
 #include <ncurses.h>
 #include <string>
 
 
-Display::Display(Editor* e) {
-  editor = e;
+Display::Display() {
   row_offset = 0;
   column_offset = 0;
 }
@@ -24,12 +24,9 @@ void Display::initialiseScreen() {
   message_window = newwin(1, COLS, LINES-1, 0);
 }
 
-void Display::clampScroll() {
-  int lines, columns;
-  getmaxyx(buffer_window, lines, columns);
-
+void Display::clampScroll(Cursor* cursor, Buffer* buffer, int lines, int columns) {
   // Vertical
-  int cursor_row = editor->getCursor()->getRow();
+  int cursor_row = cursor->getRow();
 
   if (cursor_row < row_offset)
     row_offset = cursor_row;
@@ -37,8 +34,8 @@ void Display::clampScroll() {
     row_offset = cursor_row - lines + 1;
 
   // Horizontal
-  int cursor_column = editor->getCursor()->getColumn();
-  int rendered_column = editor->getBuffer()->getRow(cursor_row)->renderedColumn(cursor_column);
+  int rendered_column =
+    buffer->getRow(cursor_row)->renderedColumn(cursor->getColumn());
 
   if (rendered_column < column_offset)
     column_offset = rendered_column;
@@ -46,20 +43,22 @@ void Display::clampScroll() {
     column_offset = rendered_column - columns + 1;
 }
 
-void Display::drawBuffer() {
+void Display::drawBuffer(Cursor* cursor, Buffer* buffer) {
   wclear(buffer_window);
 
   int lines, columns;
   getmaxyx(buffer_window, lines, columns);
 
+  clampScroll(cursor, buffer, lines, columns);
+
   int screen_row;
   for (screen_row = 0; screen_row < lines; screen_row++) {
     int file_row = screen_row + row_offset;
 
-    if (file_row >= editor->getBuffer()->countRows()) {
+    if (file_row >= buffer->countRows()) {
       mvwaddch(buffer_window, screen_row, 0, '~');
     } else {
-      std::string rendered = editor->getBuffer()->getRow(file_row)->getRendered();
+      std::string rendered = buffer->getRow(file_row)->getRendered();
       if (column_offset < rendered.size()) {
         std::string visible_rendered = rendered.substr(
             column_offset, column_offset + columns);
@@ -68,10 +67,21 @@ void Display::drawBuffer() {
     }
   }
 
-  wnoutrefresh(buffer_window);
+  wrefresh(buffer_window);
 }
 
-void Display::drawStatus() {
+void Display::drawCursor(Cursor* cursor, Buffer* buffer) {
+  int row = cursor->getRow();
+  int column = cursor->getColumn();
+  wmove(
+    buffer_window,
+    row - row_offset,
+    buffer->getRow(row)->renderedColumn(column) - column_offset
+  );
+  wrefresh(buffer_window);
+}
+
+void Display::drawStatus(Buffer* buffer, std::string filename, std::string mode) {
   wclear(status_window);
 
   int lines, columns;
@@ -84,18 +94,20 @@ void Display::drawStatus() {
   for (j = 0; j < columns; j++) mvwaddch(status_window, 0, j, ' ');
 
   // Overwrite some of the spaces with the status
-  mvwprintw(status_window, 0, 0, "%.40s - %d lines - %s mode",
-    editor->isFileOpen() ? editor->getFilename().c_str() : "[no name]",
-    editor->getBuffer()->countRows(),
-    editor->getModeName().c_str()
+  mvwprintw(
+    status_window, 0, 0,
+    "%.40s - %d lines - %s mode",
+    filename.size() ? filename.c_str() : "[No name]",
+    buffer->countRows(),
+    mode.c_str()
   );
 
   wattroff(status_window, A_STANDOUT);
 
-  wnoutrefresh(status_window);
+  wrefresh(status_window);
 }
 
-void Display::drawMessage() {
+void Display::drawMessage(std::string message) {
   wclear(message_window);
 
   int lines, columns;
@@ -107,26 +119,11 @@ void Display::drawMessage() {
   int j;
   for (j = 0; j < columns; j++) mvwaddch(message_window, 0, j, ' ');
 
-  mvwaddnstr(message_window, 0, 0, editor->getStatusMessage().c_str(), columns);
+  mvwaddnstr(message_window, 0, 0, message.c_str(), columns);
 
   wattroff(message_window, A_STANDOUT);
 
-  wnoutrefresh(message_window);
-}
-
-void Display::refreshScreen() {
-  clampScroll();
-
-  drawBuffer();
-  drawStatus();
-  drawMessage();
-
-  move(
-    editor->getCursor()->getRow() - row_offset,
-    editor->getBuffer()->getRow(editor->getCursor()->getRow())->renderedColumn(editor->getCursor()->getColumn()) - column_offset
-  );
-
-  doupdate();
+  wrefresh(message_window);
 }
 
 int Display::getKey() {

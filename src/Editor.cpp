@@ -1,6 +1,7 @@
 #include "Editor.h"
 #include "Buffer.h"
 #include "Cursor.h"
+#include "Display.h"
 #include <ncurses.h>
 #include <string>
 #include <iostream>
@@ -39,28 +40,24 @@ Editor::Editor() : cursor(&buffer) {
   insert_mode = FALSE;
 }
 
-Buffer* Editor::getBuffer() {
-  return &buffer;
+void Editor::drawStatus() {
+  display.drawStatus(&buffer, filename, insert_mode ? "Edit" : "Move");
 }
 
-Cursor* Editor::getCursor() {
-  return &cursor;
+void Editor::drawBuffer() {
+  display.drawBuffer(&cursor, &buffer);
 }
 
-bool Editor::isFileOpen() {
-  return filename.size();
+void Editor::drawCursor() {
+  display.drawCursor(&cursor, &buffer);
 }
 
-std::string Editor::getFilename() {
-  return filename;
-}
-
-std::string Editor::getStatusMessage() {
-  return status_message;
-}
-
-std::string Editor::getModeName() {
-  return insert_mode ? "Edit" : "Move";
+void Editor::initialiseScreen() {
+  display.initialiseScreen();
+  drawStatus();
+  drawBuffer();
+  display.drawMessage("Welcome to Yamte!");
+  drawCursor();
 }
 
 void Editor::openFile(std::string f) {
@@ -75,10 +72,14 @@ void Editor::openFile(std::string f) {
     }
     file.close();
 
-    status_message = "Opened " + filename;
+    drawBuffer();
+    display.drawMessage("Opened " + filename);
   } else {
-    status_message = "Failed to open " + filename;
+    display.drawMessage("Failed to open " + filename);
   }
+
+  drawStatus();
+  drawCursor();
 }
 
 void Editor::saveFile() {
@@ -91,9 +92,9 @@ void Editor::saveFile() {
     }
     file.close();
 
-    status_message = "Saved " + filename;
+    display.drawMessage("Saved " + filename);
   } else {
-    status_message = "Failed to save " + filename;
+    display.drawMessage("Failed to save " + filename);
   }
 }
 
@@ -110,6 +111,7 @@ void Editor::processKeyNormal(int key) {
 
     case 'e':
       insert_mode = TRUE;
+      drawStatus();
       break;
 
     case 'w':
@@ -150,6 +152,9 @@ void Editor::processKeyNormal(int key) {
       cursor.moveBottom();
       break;
   }
+
+  drawBuffer();
+  drawCursor();
 }
 
 void Editor::processKeyInsert(int key) {
@@ -173,9 +178,15 @@ void Editor::processKeyInsert(int key) {
       insertCharacter(key);
       break;
   }
+
+  drawStatus();
+  drawBuffer();
+  drawCursor();
 }
 
-void Editor::processKey(int key) {
+void Editor::processKey() {
+  int key = display.getKey();
+
   if (insert_mode)
     processKeyInsert(key);
   else
