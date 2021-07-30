@@ -49,6 +49,7 @@ void Editor::drawStatus() {
 
 void Editor::drawBuffer() {
   display.drawBuffer(&cursor, &buffer);
+  display.drawSidebar(&buffer);
 }
 
 void Editor::drawCursor() {

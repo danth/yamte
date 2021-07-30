@@ -11,6 +11,7 @@ class Display {
     int row_offset;
     int column_offset;
     WINDOW* buffer_window;
+    WINDOW* sidebar_window;
     WINDOW* status_window;
     WINDOW* message_window;
 
@@ -20,6 +21,7 @@ class Display {
 		Display();
     void initialiseScreen();
 
+    void drawSidebar(Buffer* buffer);
     void drawBuffer(Cursor* cursor, Buffer* buffer);
     void drawCursor(Cursor* cursor, Buffer* buffer);
     void drawStatus(Buffer* buffer, std::string filename, std::string mode);

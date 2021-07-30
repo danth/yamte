@@ -23,7 +23,8 @@ void Display::initialiseScreen() {
   refresh();
 
   status_window = newwin(1, COLS, 0, 0);
-  buffer_window = newwin(LINES-2, COLS, 1, 0);
+  sidebar_window = newwin(LINES-2, 3, 1, COLS-3);
+  buffer_window = newwin(LINES-2, COLS-3, 1, 0);
   message_window = newwin(1, COLS, LINES-1, 0);
 }
 
@@ -46,6 +47,30 @@ void Display::clampScroll(Cursor* cursor, Buffer* buffer, int lines, int columns
     column_offset = rendered_column - columns + 1;
 }
 
+void Display::drawSidebar(Buffer* buffer) {
+  wclear(sidebar_window);
+
+  int lines, columns;
+  getmaxyx(sidebar_window, lines, columns);
+
+  wattron(sidebar_window, WA_STANDOUT);
+
+  int screen_row;
+  for (screen_row = 0; screen_row < lines; screen_row++) {
+    int file_row = screen_row + row_offset;
+
+    if (file_row >= buffer->countRows()) {
+      mvwaddstr(sidebar_window, screen_row, 0, " ~ ");
+    } else {
+      mvwprintw(sidebar_window, screen_row, 0, "%.3i", file_row);
+    }
+  }
+
+  wattroff(sidebar_window, WA_STANDOUT);
+
+  wrefresh(sidebar_window);
+}
+
 void Display::drawBuffer(Cursor* cursor, Buffer* buffer) {
   wclear(buffer_window);
 
@@ -58,9 +83,7 @@ void Display::drawBuffer(Cursor* cursor, Buffer* buffer) {
   for (screen_row = 0; screen_row < lines; screen_row++) {
     int file_row = screen_row + row_offset;
 
-    if (file_row >= buffer->countRows()) {
-      mvwaddch(buffer_window, screen_row, 0, '~');
-    } else {
+    if (file_row < buffer->countRows()) {
       std::wstring rendered = buffer->getRow(file_row)->getRendered();
       if (column_offset < rendered.size()) {
         std::wstring visible_rendered = rendered.substr(
