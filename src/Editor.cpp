@@ -160,6 +160,18 @@ void Editor::processKeyNormal(int key) {
   drawCursor();
 }
 
+bool isKeyPrintable(int key) {
+  return (
+    key > 31 && key < 255
+    && key != 127
+    && key != 129
+    && key != 141
+    && key != 143
+    && key != 144
+    && key != 157
+  );
+}
+
 void Editor::processKeyInsert(int key) {
   switch (key) {
     case CTRL_KEY('q'):
@@ -203,7 +215,7 @@ void Editor::processKeyInsert(int key) {
       break;
 
     default:
-      insertCharacter(key);
+      if (isKeyPrintable(key)) insertCharacter(key);
       break;
   }
 
