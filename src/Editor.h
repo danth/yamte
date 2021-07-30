@@ -27,6 +27,7 @@ class Editor {
 		bool isFileOpen();
 		std::string getFilename();
 		std::string getStatusMessage();
+		std::string getModeName();
 		void openFile(std::string f);
 		void saveFile();
 		void processKey(int key);

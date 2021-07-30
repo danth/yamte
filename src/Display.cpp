@@ -65,9 +65,10 @@ void Display::drawStatus() {
   for (j = 0; j < COLS; j++) mvaddch(LINES-2, j, ' ');
 
   // Overwrite some of the spaces with the status
-  mvprintw(LINES-2, 0, "%.40s - %d lines",
+  mvprintw(LINES-2, 0, "%.40s - %d lines - %s mode",
     editor->isFileOpen() ? editor->getFilename().c_str() : "[no name]",
-    editor->getBuffer()->countRows()
+    editor->getBuffer()->countRows(),
+    editor->getModeName().c_str()
   );
 
   attroff(A_STANDOUT);

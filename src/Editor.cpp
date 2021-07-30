@@ -59,6 +59,10 @@ std::string Editor::getStatusMessage() {
   return status_message;
 }
 
+std::string Editor::getModeName() {
+  return insert_mode ? "Edit" : "Move";
+}
+
 void Editor::openFile(std::string f) {
   filename = f;
 
