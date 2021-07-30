@@ -12,7 +12,7 @@ class Editor {
 		Cursor cursor;
 		Display display;
 		std::string filename;
-		bool insert_mode;
+		bool input_mode;
 
 		void drawStatus();
 		void drawBuffer();

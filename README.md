@@ -2,7 +2,7 @@
 
 ## Keybindings
 
-### Move mode
+### Action mode
 
 | Main Key | Alternative Key | Action                                   |
 |----------|-----------------|------------------------------------------|
@@ -16,9 +16,11 @@
 | ctrl-d   | end             | Move the cursor to the end of the line   |
 | ctrl-o   |                 | Save the file                            |
 | ctrl-q   |                 | Exit without saving                      |
-| e        |                 | Switch to edit mode                      |
+| e        |                 | Switch to input mode                     |
 
-### Edit mode
+### Input mode
+
+Any keys which aren't in the table below will be added to the file.
 
 | Main Key  | Action                                        |
 |-----------|-----------------------------------------------|
@@ -31,6 +33,4 @@
 | →         | Move the cursor right one column              |
 | home      | Move the cursor to the start of the line      |
 | end       | Move the cursor to the end of the line        |
-| ctrl-q    | Switch to move mode                           |
-
-Any other key will add that character to the file.
+| ctrl-q    | Switch to action mode                         |

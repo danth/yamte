@@ -40,11 +40,11 @@ void Editor::deleteCharacter() {
 
 Editor::Editor() : cursor(&buffer) {
   filename = "";
-  insert_mode = FALSE;
+  input_mode = FALSE;
 }
 
 void Editor::drawStatus() {
-  display.drawStatus(&buffer, filename, insert_mode ? "Edit" : "Move");
+  display.drawStatus(&buffer, filename, input_mode ? "Input" : "Action");
 }
 
 void Editor::drawBuffer() {
@@ -113,7 +113,7 @@ void Editor::processKeyNormal(int key) {
       break;
 
     case 'e':
-      insert_mode = TRUE;
+      input_mode = TRUE;
       drawStatus();
       break;
 
@@ -163,7 +163,7 @@ void Editor::processKeyNormal(int key) {
 void Editor::processKeyInsert(int key) {
   switch (key) {
     case CTRL_KEY('q'):
-      insert_mode = FALSE;
+      input_mode = FALSE;
       break;
 
     case '\r':
@@ -215,7 +215,7 @@ void Editor::processKeyInsert(int key) {
 void Editor::processKey() {
   int key = display.getKey();
 
-  if (insert_mode)
+  if (input_mode)
     processKeyInsert(key);
   else
     processKeyNormal(key);
