@@ -178,6 +178,30 @@ void Editor::processKeyInsert(int key) {
       deleteCharacter();
       break;
 
+    case KEY_UP:
+      cursor.moveUp();
+      break;
+
+    case KEY_DOWN:
+      cursor.moveDown();
+      break;
+
+    case KEY_LEFT:
+      cursor.moveLeft();
+      break;
+
+    case KEY_RIGHT:
+      cursor.moveRight();
+      break;
+
+    case KEY_HOME:
+      cursor.moveHome();
+      break;
+
+    case KEY_END:
+      cursor.moveEnd();
+      break;
+
     default:
       insertCharacter(key);
       break;
