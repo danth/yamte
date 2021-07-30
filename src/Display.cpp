@@ -107,9 +107,9 @@ void Display::drawStatus(Buffer* buffer, std::string filename, std::string mode)
   // Overwrite some of the spaces with the status
   mvwprintw(
     status_window, 0, 0,
-    "%.40s%s - %d lines - %s mode",
+    "%.40s%s • %d lines • %s mode",
     filename.size() ? basename(filename).c_str() : "[No name]",
-    buffer->isDirty() ? " *" : "",
+    buffer->isDirty() ? " • Unsaved" : "",
     buffer->countRows(),
     mode.c_str()
   );
