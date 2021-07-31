@@ -2,6 +2,7 @@
 
 #include "Cursor.h"
 #include "Buffer.h"
+#include "Editor.h"
 #include <ncurses.h>
 #include <string>
 
@@ -10,22 +11,29 @@ class Display {
 	private:
     int row_offset;
     int column_offset;
+    Editor editor;
     WINDOW* buffer_window;
     WINDOW* sidebar_window;
     WINDOW* status_window;
     WINDOW* message_window;
 
-    void clampScroll(Cursor* cursor, Buffer* buffer, int lines, int columns);
+    void clampScroll(int lines, int columns);
+
+    void drawStatus();
+    void drawSidebar();
+    void drawBuffer();
+    void drawMessage();
+    void positionCursor();
 
 	public:
-		Display();
+    Display();
+
+    Editor* getEditor();
+
     void initialiseScreen();
+    void draw();
 
-    void drawSidebar(Buffer* buffer);
-    void drawBuffer(Cursor* cursor, Buffer* buffer);
-    void drawCursor(Cursor* cursor, Buffer* buffer);
-    void drawStatus(Buffer* buffer, std::string filename, std::string mode);
-    void drawMessage(std::string message);
+    void setMessage(std::string m);
 
-    wchar_t getKey();
+    void processKey();
 };

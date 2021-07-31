@@ -1,7 +1,6 @@
 #include "Editor.h"
 #include "Buffer.h"
 #include "Cursor.h"
-#include "Display.h"
 #include <ncurses.h>
 #include <string>
 #include <iostream>
@@ -9,6 +8,32 @@
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
+
+Editor::Editor() : cursor(&buffer) {
+  filename = "";
+  message = "Welcome to Yamte!";
+  input_mode = FALSE;
+}
+
+std::string Editor::getFilename() {
+  return filename;
+}
+
+std::string Editor::getMessage() {
+  return message;
+}
+
+Buffer* Editor::getBuffer() {
+  return &buffer;
+}
+
+Cursor* Editor::getCursor() {
+  return &cursor;
+}
+
+std::string Editor::getModeName() {
+  return input_mode ? "Input" : "Action";
+}
 
 void Editor::insertCharacter(wchar_t character) {
   buffer.insertCharacter(cursor.getRow(), cursor.getColumn(), character);
@@ -38,32 +63,6 @@ void Editor::deleteCharacter() {
   buffer.deleteCharacter(row, column);
 }
 
-Editor::Editor() : cursor(&buffer) {
-  filename = "";
-  input_mode = FALSE;
-}
-
-void Editor::drawStatus() {
-  display.drawStatus(&buffer, filename, input_mode ? "Input" : "Action");
-}
-
-void Editor::drawBuffer() {
-  display.drawBuffer(&cursor, &buffer);
-  display.drawSidebar(&buffer);
-}
-
-void Editor::drawCursor() {
-  display.drawCursor(&cursor, &buffer);
-}
-
-void Editor::initialiseScreen() {
-  display.initialiseScreen();
-  drawStatus();
-  drawBuffer();
-  display.drawMessage("Welcome to Yamte!");
-  drawCursor();
-}
-
 void Editor::openFile(std::string f) {
   filename = f;
 
@@ -73,14 +72,10 @@ void Editor::openFile(std::string f) {
     buffer.fromFile(&file);
     file.close();
 
-    drawBuffer();
-    display.drawMessage("Opened " + filename);
+    message = "Opened " + filename;
   } else {
-    display.drawMessage("Failed to open " + filename);
+    message = "Failed to open " + filename;
   }
-
-  drawStatus();
-  drawCursor();
 }
 
 void Editor::saveFile() {
@@ -90,9 +85,9 @@ void Editor::saveFile() {
     buffer.toFile(&file);
     file.close();
 
-    display.drawMessage("Saved " + filename);
+    message = "Saved " + filename;
   } else {
-    display.drawMessage("Failed to save " + filename);
+    message = "Failed to save " + filename;
   }
 }
 
@@ -105,12 +100,10 @@ void Editor::processKeyNormal(wchar_t key) {
 
     case CTRL_KEY('o'):
       saveFile();
-      drawStatus();
       break;
 
     case 'e':
       input_mode = TRUE;
-      drawStatus();
       break;
 
     case 'w':
@@ -151,9 +144,6 @@ void Editor::processKeyNormal(wchar_t key) {
       cursor.moveBottom();
       break;
   }
-
-  drawBuffer();
-  drawCursor();
 }
 
 bool isKeyPrintable(wchar_t key) {
@@ -214,15 +204,9 @@ void Editor::processKeyInsert(wchar_t key) {
       if (isKeyPrintable(key)) insertCharacter(key);
       break;
   }
-
-  drawStatus();
-  drawBuffer();
-  drawCursor();
 }
 
-void Editor::processKey() {
-  wchar_t key = display.getKey();
-
+void Editor::processKey(wchar_t key) {
   if (input_mode)
     processKeyInsert(key);
   else

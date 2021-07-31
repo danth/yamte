@@ -1,16 +1,17 @@
-#include "Editor.h"
+#include "Display.h"
 
 
 int main(int argc, char *argv[]) {
-  Editor editor;
-  editor.initialiseScreen();
+  Display display;
+  display.initialiseScreen();
 
   if (argc >= 2) {
-    editor.openFile(argv[1]);
+    display.getEditor()->openFile(argv[1]);
   }
 
   while(1) {
-    editor.processKey();
+    display.draw();
+    display.processKey();
   }
 
   return 0;

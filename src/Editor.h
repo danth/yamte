@@ -2,21 +2,17 @@
 
 #include "Buffer.h"
 #include "Cursor.h"
-#include "Display.h"
 #include <string>
+#include <ncurses.h>
 
 
 class Editor {
 	private:
     Buffer buffer;
 		Cursor cursor;
-		Display display;
 		std::string filename;
+    std::string message;
 		bool input_mode;
-
-		void drawStatus();
-		void drawBuffer();
-		void drawCursor();
 
 		void insertCharacter(wchar_t character);
 		void insertNewline();
@@ -28,10 +24,14 @@ class Editor {
 	public:
 		Editor();
 
-		void initialiseScreen();
+		std::string getFilename();
+		std::string getMessage();
+		Buffer* getBuffer();
+		Cursor* getCursor();
+		std::string getModeName();
 
 		void openFile(std::string f);
 		void saveFile();
 
-		void processKey();
+		void processKey(wchar_t key);
 };

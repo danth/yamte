@@ -1,6 +1,7 @@
 #include "Display.h"
 #include "Cursor.h"
 #include "Buffer.h"
+#include "Editor.h"
 #include <ncurses.h>
 #include <locale.h>
 #include <string>
@@ -9,6 +10,10 @@
 Display::Display() {
   row_offset = 0;
   column_offset = 0;
+}
+
+Editor* Display::getEditor() {
+  return &editor;
 }
 
 void Display::initialiseScreen() {
@@ -28,9 +33,9 @@ void Display::initialiseScreen() {
   message_window = newwin(1, COLS, LINES-1, 0);
 }
 
-void Display::clampScroll(Cursor* cursor, Buffer* buffer, int lines, int columns) {
+void Display::clampScroll(int lines, int columns) {
   // Vertical
-  int cursor_row = cursor->getRow();
+  int cursor_row = editor.getCursor()->getRow();
 
   if (cursor_row < row_offset)
     row_offset = cursor_row;
@@ -39,7 +44,7 @@ void Display::clampScroll(Cursor* cursor, Buffer* buffer, int lines, int columns
 
   // Horizontal
   int rendered_column =
-    buffer->getRow(cursor_row)->renderedColumn(cursor->getColumn());
+    editor.getBuffer()->getRow(cursor_row)->renderedColumn(editor.getCursor()->getColumn());
 
   if (rendered_column < column_offset)
     column_offset = rendered_column;
@@ -47,8 +52,8 @@ void Display::clampScroll(Cursor* cursor, Buffer* buffer, int lines, int columns
     column_offset = rendered_column - columns + 1;
 }
 
-void Display::drawSidebar(Buffer* buffer) {
-  wclear(sidebar_window);
+void Display::drawSidebar() {
+  werase(sidebar_window);
 
   int lines, columns;
   getmaxyx(sidebar_window, lines, columns);
@@ -59,7 +64,7 @@ void Display::drawSidebar(Buffer* buffer) {
   for (screen_row = 0; screen_row < lines; screen_row++) {
     int file_row = screen_row + row_offset;
 
-    if (file_row >= buffer->countRows()) {
+    if (file_row >= editor.getBuffer()->countRows()) {
       mvwaddstr(sidebar_window, screen_row, 0, " ~ ");
     } else {
       mvwprintw(sidebar_window, screen_row, 0, "%.3i", file_row);
@@ -73,20 +78,20 @@ void Display::drawSidebar(Buffer* buffer) {
   wrefresh(sidebar_window);
 }
 
-void Display::drawBuffer(Cursor* cursor, Buffer* buffer) {
-  wclear(buffer_window);
+void Display::drawBuffer() {
+  werase(buffer_window);
 
   int lines, columns;
   getmaxyx(buffer_window, lines, columns);
 
-  clampScroll(cursor, buffer, lines, columns);
+  clampScroll(lines, columns);
 
   int screen_row;
   for (screen_row = 0; screen_row < lines; screen_row++) {
     int file_row = screen_row + row_offset;
 
-    if (file_row < buffer->countRows()) {
-      std::wstring rendered = buffer->getRow(file_row)->getRendered();
+    if (file_row < editor.getBuffer()->countRows()) {
+      std::wstring rendered = editor.getBuffer()->getRow(file_row)->getRendered();
       if (column_offset < rendered.size()) {
         std::wstring visible_rendered = rendered.substr(
             column_offset, column_offset + columns);
@@ -98,13 +103,13 @@ void Display::drawBuffer(Cursor* cursor, Buffer* buffer) {
   wrefresh(buffer_window);
 }
 
-void Display::drawCursor(Cursor* cursor, Buffer* buffer) {
-  int row = cursor->getRow();
-  int column = cursor->getColumn();
+void Display::positionCursor() {
+  int row = editor.getCursor()->getRow();
+  int column = editor.getCursor()->getColumn();
   wmove(
     buffer_window,
     row - row_offset,
-    buffer->getRow(row)->renderedColumn(column) - column_offset
+    editor.getBuffer()->getRow(row)->renderedColumn(column) - column_offset
   );
   wrefresh(buffer_window);
 }
@@ -117,8 +122,8 @@ std::string basename(std::string path) {
     return path;
 }
 
-void Display::drawStatus(Buffer* buffer, std::string filename, std::string mode) {
-  wclear(status_window);
+void Display::drawStatus() {
+  werase(status_window);
 
   int lines, columns;
   getmaxyx(status_window, lines, columns);
@@ -133,10 +138,10 @@ void Display::drawStatus(Buffer* buffer, std::string filename, std::string mode)
   mvwprintw(
     status_window, 0, 0,
     "%.40s%s • %d lines • %s mode",
-    filename.size() ? basename(filename).c_str() : "[No name]",
-    buffer->isDirty() ? " • Unsaved" : "",
-    buffer->countRows(),
-    mode.c_str()
+    editor.getFilename().size() ? basename(editor.getFilename()).c_str() : "[No name]",
+    editor.getBuffer()->isDirty() ? " • Unsaved" : "",
+    editor.getBuffer()->countRows(),
+    editor.getModeName().c_str()
   );
 
   wattroff(status_window, WA_STANDOUT);
@@ -144,8 +149,8 @@ void Display::drawStatus(Buffer* buffer, std::string filename, std::string mode)
   wrefresh(status_window);
 }
 
-void Display::drawMessage(std::string message) {
-  wclear(message_window);
+void Display::drawMessage() {
+  werase(message_window);
 
   int lines, columns;
   getmaxyx(message_window, lines, columns);
@@ -156,15 +161,24 @@ void Display::drawMessage(std::string message) {
   int j;
   for (j = 0; j < columns; j++) mvwaddch(message_window, 0, j, ' ');
 
-  mvwaddnstr(message_window, 0, 0, message.c_str(), columns);
+  mvwaddnstr(message_window, 0, 0, editor.getMessage().c_str(), columns);
 
   wattroff(message_window, WA_STANDOUT);
 
   wrefresh(message_window);
 }
 
-wchar_t Display::getKey() {
+void Display::draw() {
+  drawStatus();
+  drawSidebar();
+  drawBuffer();
+  drawMessage();
+  positionCursor();
+}
+
+void Display::processKey() {
   wint_t key;
   get_wch(&key);
-  return key;
+
+  editor.processKey(key);
 }
