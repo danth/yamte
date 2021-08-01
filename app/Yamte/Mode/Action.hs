@@ -1,7 +1,8 @@
 module Yamte.Mode.Action (actionMode) where
 
-import Yamte.Editor (Mode(Mode), Action(Action), leaveMode)
+import Yamte.Editor (Mode(Mode), Action(Action), leaveMode, enterMode)
 import Yamte.Cursor
+import Yamte.Mode.Input (inputMode)
 import UI.NCurses (Key(..))
 
 actionMode :: Mode
@@ -20,4 +21,5 @@ actionMode = Mode "Action" [ (Action (Left '\^Q') leaveMode)
                            , (Action (Right KeyHome) moveHome)
                            , (Action (Left '\^D') moveEnd)
                            , (Action (Right KeyEnd) moveEnd)
+                           , (Action (Left 'e') $ enterMode inputMode)
                            ]
