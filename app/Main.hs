@@ -45,6 +45,15 @@ draw windows buffer = do
 
     updateWindow (sidebarWindow windows) $ do
         clear
+        (rows, columns) <- windowSize
+        forM_ [0..(rows-1)] $ \i ->
+            if i < (toInteger $ length buffer)
+            then do
+                moveCursor i 0
+                drawString $ show i
+            else do
+                moveCursor i 1
+                drawString "~"
 
     updateWindow (bufferWindow windows) $ do
         clear
