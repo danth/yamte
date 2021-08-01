@@ -1,6 +1,6 @@
 module Yamte.Editor (
   Trigger,
-  Action(..),
+  ModeResponse(..),
   Mode(..),
   Buffer,
   Cursor,
@@ -13,12 +13,11 @@ module Yamte.Editor (
   handleEvent
 ) where
 
-import Data.List (find)
 import UI.NCurses (Key, Event(EventCharacter, EventSpecialKey))
 
 type Trigger = Either Char Key
-data Action = Action Trigger (State -> State)
-data Mode = Mode String [Action]
+data ModeResponse = NewState State | Propagate | DoNothing
+data Mode = Mode String (Trigger -> State -> ModeResponse)
 
 type Buffer = [String]
 type Cursor = (Int, Int)
@@ -56,17 +55,21 @@ enterMode mode state = state { stateModes = mode:(stateModes state) }
 leaveMode :: State -> State
 leaveMode state = state { stateModes = tail $ stateModes state }
 
-getAction :: Event -> State -> Maybe Action
-getAction event state =
-    let trigger :: Trigger
-        trigger = case event of
-                    EventCharacter character -> Left character
-                    EventSpecialKey key -> Right key
-     in do
-         (Mode _ actions) <- activeMode state
-         find (\(Action t _) -> t == trigger) actions
+getTrigger :: Event -> Maybe Trigger
+getTrigger (EventCharacter character) = Just $ Left character
+getTrigger (EventSpecialKey key) = Just $ Right key
+getTrigger _ = Nothing
+
+handleTrigger :: Trigger -> State -> [Mode] -> State
+handleTrigger trigger state [] = state
+handleTrigger trigger state (mode:modes) =
+  let (Mode _ f) = mode
+   in case f trigger state of
+        NewState state' -> state'
+        Propagate -> handleTrigger trigger state modes
+        DoNothing -> state
 
 handleEvent :: Event -> State -> State
-handleEvent event state = case getAction event state of
-          Nothing -> state
-          Just (Action _ f) -> f state
+handleEvent event state = case getTrigger event of
+        Nothing -> state
+        Just trigger -> handleTrigger trigger state (stateModes state)

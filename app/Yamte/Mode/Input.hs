@@ -1,15 +1,12 @@
 module Yamte.Mode.Input (inputMode) where
 
-import Yamte.Editor (Mode(Mode), Action(Action), leaveMode)
-import Yamte.Cursor
+import Yamte.Editor
 import UI.NCurses (Key(..))
 
+handleTrigger :: Trigger -> State -> ModeResponse
+handleTrigger (Right _) state = Propagate
+handleTrigger (Left '\^Q') state = Propagate
+handleTrigger (Left _) state = DoNothing
+
 inputMode :: Mode
-inputMode = Mode "Input" [ (Action (Left '\^Q') leaveMode)
-                         , (Action (Right KeyLeftArrow) moveLeft)
-                         , (Action (Right KeyRightArrow) moveRight)
-                         , (Action (Right KeyUpArrow) moveUp)
-                         , (Action (Right KeyDownArrow) moveDown)
-                         , (Action (Right KeyHome) moveHome)
-                         , (Action (Right KeyEnd) moveEnd)
-                         ]
+inputMode = Mode "Input" handleTrigger
