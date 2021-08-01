@@ -2,7 +2,7 @@ module Main where
 
 import Control.Monad (forM_)
 import Control.Monad.IO.Class (liftIO)
-import Data.List (genericTake)
+import Data.List (genericTake, intercalate)
 import System.Environment (getArgs)
 import UI.NCurses
 
@@ -38,10 +38,17 @@ createWindows = do
                    , messageWindow = message
                    }
 
+statusLine :: [String] -> String
+statusLine = intercalate " • "
+
 draw :: Windows -> Buffer -> Curses ()
 draw windows buffer = do
     updateWindow (statusWindow windows) $ do
         clear
+        moveCursor 0 0
+        drawString $ statusLine
+            [ (show (length buffer) ++ " lines")
+            ]
 
     updateWindow (sidebarWindow windows) $ do
         clear
