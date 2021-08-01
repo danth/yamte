@@ -2,10 +2,20 @@ module Yamte.Cursor (
   moveLeft,
   moveRight,
   moveUp,
-  moveDown
+  moveDown,
+  moveTop,
+  moveBottom,
+  moveHome,
+  moveEnd
 ) where
 
 import Yamte.Editor (State(..), Buffer, Cursor)
+
+rowLength :: Int -> Buffer -> Int
+-- The cursor is allowed to move one row below the end of the buffer
+rowLength row buffer = if row < length buffer
+                          then length $ buffer !! row
+                          else 0
 
 clamp :: Ord a => a -> a -> a -> a
 clamp min max value = if value < min
@@ -17,10 +27,8 @@ clamp min max value = if value < min
 clampCursor :: Buffer -> Cursor -> Cursor
 clampCursor buffer (row, column) =
   let row' = clamp 0 (length buffer) row
-  -- The cursor is allowed to move one row below the end of the buffer
    in if row' < length buffer
-      then let line = buffer !! row'
-               column' = clamp 0 (length line) column
+      then let column' = clamp 0 (rowLength row' buffer) column
             in (row', column')
       else (row', 0)
 
@@ -43,3 +51,20 @@ moveUp = moveBy (-1, 0)
 
 moveDown :: State -> State
 moveDown = moveBy (1, 0)
+
+setCursor :: (Cursor -> Buffer -> Cursor) -> State -> State
+setCursor f state =
+  let newCursor = f (stateCursor state) (stateBuffer state)
+   in state { stateCursor = clampCursor (stateBuffer state) newCursor }
+
+moveTop :: State -> State
+moveTop = setCursor (\(row, column) buffer -> (0, column))
+
+moveBottom :: State -> State
+moveBottom = setCursor (\(row, column) buffer -> (length buffer, column))
+
+moveHome :: State -> State
+moveHome = setCursor (\(row, column) buffer -> (row, 0))
+
+moveEnd :: State -> State
+moveEnd = setCursor (\(row, column) buffer -> (row, rowLength row buffer))
