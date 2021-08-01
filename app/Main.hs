@@ -14,6 +14,11 @@ data Windows  = Windows { statusWindow :: Window
 
 type Buffer = [String]
 
+data EditorState = EditorState { stateWindows :: Windows
+                               , stateBuffer :: Buffer
+                               , stateFilename :: Maybe String
+                               }
+
 invertBackground :: Update ()
 invertBackground = setBackground $ Glyph ' ' [AttributeReverse]
 
@@ -41,20 +46,23 @@ createWindows = do
 statusLine :: [String] -> String
 statusLine = intercalate " • "
 
-draw :: Windows -> Buffer -> Curses ()
-draw windows buffer = do
+draw :: Windows -> EditorState -> Curses ()
+draw windows state = do
     updateWindow (statusWindow windows) $ do
         clear
         moveCursor 0 4
         drawString $ statusLine
-            [ (show (length buffer) ++ " lines")
+            [ (case stateFilename state of
+                 Nothing -> "[No name]"
+                 Just filename -> filename)
+            , (show (length $ stateBuffer state) ++ " lines")
             ]
 
     updateWindow (sidebarWindow windows) $ do
         clear
         (rows, columns) <- windowSize
         forM_ [0..(rows-1)] $ \i ->
-            if i < (toInteger $ length buffer)
+            if i < (toInteger $ length $ stateBuffer state)
             then do
                 moveCursor i 0
                 drawString $ show i
@@ -65,7 +73,7 @@ draw windows buffer = do
     updateWindow (bufferWindow windows) $ do
         clear
         (rows, columns) <- windowSize
-        forM_ (zip [0..(rows-1)] buffer) $ \(i, line) -> do
+        forM_ (zip [0..(rows-1)] $ stateBuffer state) $ \(i, line) -> do
             moveCursor i 0
             drawString $ genericTake (columns-1) line
 
@@ -85,15 +93,23 @@ loadFile fileName = do
 
 main :: IO ()
 main = runCurses $ do
-    arguments <- liftIO getArgs
-    buffer <- if length arguments > 0
-                 then liftIO $ loadFile $ arguments!!0
-                 else return []
-
     setEcho False
 
     windows <- createWindows
-    draw windows buffer
+
+    arguments <- liftIO getArgs
+    (buffer, filename) <- if length arguments > 0
+                             then liftIO $ do
+                                 buffer <- loadFile $ arguments!!0
+                                 return (buffer, Just $ arguments!!0)
+                             else return ([], Nothing)
+
+    let state = EditorState { stateWindows = windows
+                            , stateBuffer = buffer
+                            , stateFilename = filename
+                            }
+
+    draw windows state
 
     waitFor (bufferWindow windows) (\ev -> ev == EventCharacter 'q' || ev == EventCharacter 'Q')
 
