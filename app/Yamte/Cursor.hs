@@ -9,12 +9,13 @@ module Yamte.Cursor (
   moveEnd
 ) where
 
+import qualified Data.Sequence as S
 import Yamte.Editor (State(..), Buffer, Cursor)
 
 rowLength :: Int -> Buffer -> Int
 -- The cursor is allowed to move one row below the end of the buffer
 rowLength row buffer = if row < length buffer
-                          then length $ buffer !! row
+                          then length $ buffer `S.index` row
                           else 0
 
 clamp :: Ord a => a -> a -> a -> a
