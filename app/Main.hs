@@ -45,7 +45,7 @@ draw :: Windows -> Buffer -> Curses ()
 draw windows buffer = do
     updateWindow (statusWindow windows) $ do
         clear
-        moveCursor 0 0
+        moveCursor 0 4
         drawString $ statusLine
             [ (show (length buffer) ++ " lines")
             ]
@@ -71,7 +71,7 @@ draw windows buffer = do
 
     updateWindow (messageWindow windows) $ do
         clear
-        moveCursor 0 0
+        moveCursor 0 4
         drawString "Welcome to Yamte!"
 
     updateWindow (bufferWindow windows) $ moveCursor 0 0
