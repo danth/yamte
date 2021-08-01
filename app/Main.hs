@@ -1,5 +1,9 @@
 module Main where
 
+import Control.Monad (forM_)
+import Control.Monad.IO.Class (liftIO)
+import Data.List (genericTake)
+import System.Environment (getArgs)
 import UI.NCurses
 
 data Windows  = Windows { statusWindow :: Window
@@ -7,6 +11,8 @@ data Windows  = Windows { statusWindow :: Window
                         , bufferWindow :: Window
                         , messageWindow :: Window
                         }
+
+type Buffer = [String]
 
 invertBackground :: Update ()
 invertBackground = setBackground $ Glyph ' ' [AttributeReverse]
@@ -32,8 +38,8 @@ createWindows = do
                    , messageWindow = message
                    }
 
-draw :: Windows -> Curses ()
-draw windows = do
+draw :: Windows -> Buffer -> Curses ()
+draw windows buffer = do
     updateWindow (statusWindow windows) $ do
         clear
 
@@ -42,6 +48,10 @@ draw windows = do
 
     updateWindow (bufferWindow windows) $ do
         clear
+        (rows, columns) <- windowSize
+        forM_ (zip [0..(rows-1)] buffer) $ \(i, line) -> do
+            moveCursor i 0
+            drawString $ genericTake (columns-1) line
 
     updateWindow (messageWindow windows) $ do
         clear
@@ -52,12 +62,22 @@ draw windows = do
 
     render
 
+loadFile :: String -> IO Buffer
+loadFile fileName = do
+    file <- readFile fileName
+    return $ lines file
+
 main :: IO ()
 main = runCurses $ do
+    arguments <- liftIO getArgs
+    buffer <- if length arguments > 0
+                 then liftIO $ loadFile $ arguments!!0
+                 else return []
+
     setEcho False
 
     windows <- createWindows
-    draw windows
+    draw windows buffer
 
     waitFor (bufferWindow windows) (\ev -> ev == EventCharacter 'q' || ev == EventCharacter 'Q')
 
