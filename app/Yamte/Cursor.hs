@@ -10,12 +10,13 @@ module Yamte.Cursor (
 ) where
 
 import qualified Data.Sequence as S
+import qualified Data.Text as T
 import Yamte.Editor (State(..), Buffer, Cursor)
 
 rowLength :: Buffer -> Int -> Int
 -- The cursor is allowed to move one row below the end of the buffer
 rowLength buffer row = if row < length buffer
-                          then length $ buffer `S.index` row
+                          then T.length $ buffer `S.index` row
                           else 0
 
 rowLength' :: State -> Int -> Int

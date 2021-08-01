@@ -6,8 +6,9 @@ module Yamte.Display (
 ) where
 
 import Control.Monad (forM_)
-import Data.List (genericTake, intercalate)
+import Data.List (intercalate)
 import qualified Data.Sequence as S
+import qualified Data.Text as T
 import UI.NCurses
 import Yamte.Editor (Mode(Mode), State(..), activeMode)
 
@@ -74,11 +75,11 @@ draw windows state = do
     updateWindow (bufferWindow windows) $ do
         clear
         (rows, columns) <- windowSize
-        let numberedLines :: S.Seq (Int, String)
+        let numberedLines :: S.Seq (Int, T.Text)
             numberedLines = S.mapWithIndex (\i l -> (i, l)) $ stateBuffer state
         forM_ numberedLines $ \(i, line) -> do
             moveCursor (toInteger i) 0
-            drawString $ genericTake (columns-1) line
+            drawText $ T.take ((fromIntegral columns) - 1) line
 
     updateWindow (messageWindow windows) $ do
         clear

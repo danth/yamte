@@ -14,13 +14,14 @@ module Yamte.Editor (
 ) where
 
 import qualified Data.Sequence as S
+import qualified Data.Text as T
 import UI.NCurses (Key, Event(EventCharacter, EventSpecialKey))
 
 type Trigger = Either Char Key
 data ModeResponse = NewState State | Propagate | DoNothing
 data Mode = Mode String (Trigger -> State -> ModeResponse)
 
-type Buffer = S.Seq String
+type Buffer = S.Seq T.Text
 type Cursor = (Int, Int)
 data State = State { stateBuffer :: Buffer
                    , stateFilename :: Maybe String
@@ -40,7 +41,7 @@ initialState = State { stateBuffer = S.empty
 loadFile :: String -> State -> IO State
 loadFile filename state = do
     file <- readFile filename
-    return $ state { stateBuffer = S.fromList $ lines file
+    return $ state { stateBuffer = S.fromList $ map T.pack $ lines file
                    , stateFilename = Just filename
                    , stateMessage = "Opened " ++ filename
                    }
