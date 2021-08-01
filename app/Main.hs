@@ -17,6 +17,7 @@ type Buffer = [String]
 data EditorState = EditorState { stateWindows :: Windows
                                , stateBuffer :: Buffer
                                , stateFilename :: Maybe String
+                               , stateMessage :: String
                                }
 
 invertBackground :: Update ()
@@ -80,7 +81,7 @@ draw windows state = do
     updateWindow (messageWindow windows) $ do
         clear
         moveCursor 0 4
-        drawString "Welcome to Yamte!"
+        drawString $ stateMessage state
 
     updateWindow (bufferWindow windows) $ moveCursor 0 0
 
@@ -104,9 +105,13 @@ main = runCurses $ do
                                  return (buffer, Just $ arguments!!0)
                              else return ([], Nothing)
 
-    let state = EditorState { stateWindows = windows
+    let message = case filename of
+                    Nothing -> "Welcome to Yamte!"
+                    Just filename -> "Opened " ++ filename
+        state = EditorState { stateWindows = windows
                             , stateBuffer = buffer
                             , stateFilename = filename
+                            , stateMessage = message
                             }
 
     draw windows state
