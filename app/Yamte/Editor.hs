@@ -3,6 +3,7 @@ module Yamte.Editor (
   Action(..),
   Mode(..),
   Buffer,
+  Cursor,
   State(..),
   initialState,
   loadFile,
@@ -20,11 +21,12 @@ data Action = Action Trigger (State -> State)
 data Mode = Mode String [Action]
 
 type Buffer = [String]
-
+type Cursor = (Int, Int)
 data State = State { stateBuffer :: Buffer
                    , stateFilename :: Maybe String
                    , stateMessage :: String
                    , stateModes :: [Mode]
+                   , stateCursor :: Cursor
                    }
 
 initialState :: State
@@ -32,6 +34,7 @@ initialState = State { stateBuffer = []
                      , stateFilename = Nothing
                      , stateMessage = "Welcome to Yamte!"
                      , stateModes = []
+                     , stateCursor = (0, 0)
                      }
 
 loadFile :: String -> State -> IO State

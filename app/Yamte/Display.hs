@@ -82,7 +82,9 @@ draw windows state = do
         moveCursor 0 4
         drawString $ stateMessage state
 
-    updateWindow (bufferWindow windows) $ moveCursor 0 0
+    updateWindow (bufferWindow windows) $
+        let (row, column) = stateCursor state
+         in moveCursor (fromIntegral row) (fromIntegral column)
 
     render
 
