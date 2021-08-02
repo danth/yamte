@@ -19,14 +19,12 @@ deleteNewline row buffer =
 
 backspace' :: Cursor -> State -> State
 backspace' (0, 0) state = state
-backspace' (row, 0) state
-  | row >= S.length (stateBuffer state) = state
-  | otherwise =
-    let buffer = stateBuffer state
-        row' = row - 1
-     in state { stateCursor = (row', T.length $ buffer `S.index` row')
-              , stateBuffer = deleteNewline row buffer
-              }
+backspace' (row, 0) state =
+  let buffer = stateBuffer state
+      row' = row - 1
+   in state { stateCursor = (row', T.length $ buffer `S.index` row')
+            , stateBuffer = deleteNewline row buffer
+            }
 backspace' (row, column) state = moveLeft $ state
   { stateBuffer = S.adjust' (deleteColumn column) row (stateBuffer state) }
 
@@ -34,11 +32,10 @@ backspace :: State -> State
 backspace state = backspace' (stateCursor state) state
 
 insertNewline' :: Cursor -> Buffer -> Buffer
-insertNewline' (row, column) buffer
-  | row >= S.length buffer = buffer
-  | otherwise = let line = buffer `S.index` row
-                    (front, back) = T.splitAt column line
-                 in S.insertAt (row + 1) back $ S.update row front buffer
+insertNewline' (row, column) buffer =
+  let line = buffer `S.index` row
+      (front, back) = T.splitAt column line
+   in S.insertAt (row + 1) back $ S.update row front buffer
 
 insertNewline :: State -> State
 insertNewline state = moveHome $ moveDown $ state

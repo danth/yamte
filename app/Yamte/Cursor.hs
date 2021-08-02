@@ -14,10 +14,7 @@ import qualified Data.Text as T
 import Yamte.Editor (State(..), Buffer, Cursor)
 
 rowLength :: Buffer -> Int -> Int
--- The cursor is allowed to move one row below the end of the buffer
-rowLength buffer row = if row < length buffer
-                          then T.length $ buffer `S.index` row
-                          else 0
+rowLength buffer row = T.length $ buffer `S.index` row
 
 rowLength' :: State -> Int -> Int
 rowLength' state = rowLength $ stateBuffer state
@@ -31,7 +28,7 @@ clamp min max value = if value < min
 
 clampCursor :: Buffer -> Cursor -> Cursor
 clampCursor buffer (row, column) =
-  let row' = clamp 0 (length buffer) row
+  let row' = clamp 0 ((length buffer) - 1) row
       column' = clamp 0 (rowLength buffer row') column
    in (row', column')
 
