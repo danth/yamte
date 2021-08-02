@@ -10,23 +10,30 @@
 
   outputs = { nixpkgs, utils, ... }:
     utils.lib.eachDefaultSystem (system:
-      let pkgs = nixpkgs.legacyPackages.${system};
+      with nixpkgs.lib;
+      with nixpkgs.legacyPackages.${system};
+      let
+        configurePackages = packages:
+          let
+            packageConf = package:
+              "${package}/lib/ghc-${ghc.version}/package.conf.d/*";
+            packageConfs = concatStringsSep " " (map packageConf packages);
+          in ''
+            nixPackages="$PWD/package.conf.d"
+            mkdir -p "$nixPackages"
+            cp ${packageConfs} "$nixPackages/"
+            ${ghc}/bin/ghc-pkg recache -f "$nixPackages"
+            export GHC_PACKAGE_PATH="$nixPackages:"
+            ${ghc}/bin/ghc-pkg list
+          '';
       in rec {
         packages = {
-          yamte = pkgs.stdenv.mkDerivation {
+          yamte = stdenv.mkDerivation {
             name = "yamte";
-            src = ./.;
-            buildInputs = with pkgs; [ ncurses ];
-            buildPhase = "g++ src/*.cpp -o yamte -D_XOPEN_SOURCE_EXTENDED -Wall -Wextra -pedantic -lncursesw";
+            src = ./app;
+            configurePhase = configurePackages (with haskellPackages; [ ncurses ]);
+            buildPhase = "${ghc}/bin/ghc -O -o yamte Main.hs";
             installPhase = "install -D yamte $out/bin/yamte";
-          };
-          yamte-debug = pkgs.stdenv.mkDerivation {
-            name = "yamte-debug";
-            src = ./.;
-            buildInputs = with pkgs; [ ncurses ];
-            buildPhase = "g++ src/*.cpp -o yamte -D_XOPEN_SOURCE_EXTENDED -ggdb -O0 -Wall -Wextra -pedantic -lncursesw";
-            installPhase = "install -D yamte $out/bin/yamte";
-            dontStrip = true;
           };
         };
         defaultPackage = packages.yamte;
