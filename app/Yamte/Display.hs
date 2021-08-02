@@ -122,10 +122,11 @@ draw' displayState state = do
 
     render
 
-draw :: DisplayState -> State -> Curses ()
+draw :: DisplayState -> State -> Curses DisplayState
 draw displayState state = do
     displayState' <- scroll displayState state
     draw' displayState' state
+    return displayState'
 
 getEvent :: DisplayState -> Curses (Maybe Event)
 getEvent displayState = UI.NCurses.getEvent (bufferWindow displayState) Nothing

@@ -9,14 +9,14 @@ import Yamte.Mode.Action (actionMode)
 
 eventLoop :: DisplayState -> State -> Curses ()
 eventLoop displayState state = do
-    draw displayState state
+    displayState' <- draw displayState state
     event <- getEvent displayState
     case event of
-      Nothing -> eventLoop displayState state
+      Nothing -> eventLoop displayState' state
       Just e -> let state' = handleEvent e state
                  in case activeMode state' of
                       Nothing -> return ()
-                      Just _ -> eventLoop displayState state'
+                      Just _ -> eventLoop displayState' state'
 
 main :: IO ()
 main = runCurses $ do
