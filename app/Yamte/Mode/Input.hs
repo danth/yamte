@@ -1,12 +1,44 @@
 module Yamte.Mode.Input (inputMode) where
 
+import qualified Data.Sequence as S
+import qualified Data.Text as T
 import Yamte.Editor
+import Yamte.Cursor (moveLeft, moveRight)
 import UI.NCurses (Key(..))
 
+deleteColumn :: Int -> T.Text -> T.Text
+deleteColumn column line =
+  let (front, back) = T.splitAt column line
+   in (T.init front) `T.append` back
+
+deleteNewline :: Int -> Buffer -> Buffer
+deleteNewline 0 buffer = buffer
+deleteNewline row buffer =
+  let line = buffer `S.index` row
+   in S.deleteAt row $ S.adjust' (\l -> l `T.append` line) (row-1) buffer
+
+backspace' :: Cursor -> State -> State
+backspace' (0, 0) state = state
+backspace' (row, 0) state
+  | row >= S.length (stateBuffer state) = state
+  | otherwise =
+    let buffer = stateBuffer state
+        row' = row - 1
+     in state { stateCursor = (row', T.length $ buffer `S.index` row')
+              , stateBuffer = deleteNewline row buffer
+              }
+backspace' (row, column) state = moveLeft $ state
+  { stateBuffer = S.adjust' (deleteColumn column) row (stateBuffer state) }
+
+backspace :: State -> State
+backspace state = backspace' (stateCursor state) state
+
 handleTrigger :: Trigger -> State -> ModeResponse
-handleTrigger (Right _) state = Propagate
-handleTrigger (Left '\^Q') state = Propagate
-handleTrigger (Left _) state = DoNothing
+handleTrigger (Right KeyBackspace) = NewState . backspace
+handleTrigger (Right KeyDeleteCharacter) = NewState . backspace . moveRight
+handleTrigger (Right _) = const Propagate
+handleTrigger (Left '\^Q') = const Propagate
+handleTrigger (Left _) = const DoNothing
 
 inputMode :: Mode
 inputMode = Mode "Input" handleTrigger
