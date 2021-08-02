@@ -1,11 +1,13 @@
-module Yamte.Mode.Input (inputMode) where
+module Yamte.Mode.Input
+  ( inputMode
+  ) where
 
 import Data.Char (isPrint)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Yamte.Editor
-import Yamte.Cursor (moveLeft, moveRight, moveHome, moveDown)
 import UI.NCurses (Key(..))
+import Yamte.Cursor (moveDown, moveHome, moveLeft, moveRight)
+import Yamte.Editor
 
 deleteColumn :: Int -> T.Text -> T.Text
 deleteColumn column line =
@@ -16,18 +18,20 @@ deleteNewline :: Int -> Buffer -> Buffer
 deleteNewline 0 buffer = buffer
 deleteNewline row buffer =
   let line = buffer `S.index` row
-   in S.deleteAt row $ S.adjust' (\l -> l `T.append` line) (row-1) buffer
+   in S.deleteAt row $ S.adjust' (\l -> l `T.append` line) (row - 1) buffer
 
 backspace' :: Cursor -> State -> State
 backspace' (0, 0) state = state
 backspace' (row, 0) state =
   let buffer = stateBuffer state
       row' = row - 1
-   in state { stateCursor = (row', T.length $ buffer `S.index` row')
-            , stateBuffer = deleteNewline row buffer
-            }
-backspace' (row, column) state = moveLeft $ state
-  { stateBuffer = S.adjust' (deleteColumn column) row (stateBuffer state) }
+   in state
+        { stateCursor = (row', T.length $ buffer `S.index` row')
+        , stateBuffer = deleteNewline row buffer
+        }
+backspace' (row, column) state =
+  moveLeft $
+  state {stateBuffer = S.adjust' (deleteColumn column) row (stateBuffer state)}
 
 backspace :: State -> State
 backspace state = backspace' (stateCursor state) state
@@ -39,8 +43,10 @@ insertNewline' (row, column) buffer =
    in S.insertAt (row + 1) back $ S.update row front buffer
 
 insertNewline :: State -> State
-insertNewline state = moveHome $ moveDown $ state
-  { stateBuffer = insertNewline' (stateCursor state) (stateBuffer state) }
+insertNewline state =
+  moveHome $
+  moveDown $
+  state {stateBuffer = insertNewline' (stateCursor state) (stateBuffer state)}
 
 insertCharacter' :: Char -> Cursor -> Buffer -> Buffer
 insertCharacter' character (row, column) buffer =
@@ -50,8 +56,12 @@ insertCharacter' character (row, column) buffer =
    in S.update row line' buffer
 
 insertCharacter :: Char -> State -> State
-insertCharacter character state = moveRight $ state
-  { stateBuffer = insertCharacter' character (stateCursor state) (stateBuffer state) }
+insertCharacter character state =
+  moveRight $
+  state
+    { stateBuffer =
+        insertCharacter' character (stateCursor state) (stateBuffer state)
+    }
 
 handleTrigger :: Trigger -> State -> ModeResponse
 handleTrigger (Right KeyBackspace) = NewState . backspace

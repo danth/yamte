@@ -1,17 +1,17 @@
-module Yamte.Cursor (
-  moveLeft,
-  moveRight,
-  moveUp,
-  moveDown,
-  moveTop,
-  moveBottom,
-  moveHome,
-  moveEnd
-) where
+module Yamte.Cursor
+  ( moveLeft
+  , moveRight
+  , moveUp
+  , moveDown
+  , moveTop
+  , moveBottom
+  , moveHome
+  , moveEnd
+  ) where
 
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Yamte.Editor (State(..), Buffer, Cursor)
+import Yamte.Editor (Buffer, Cursor, State(..))
 
 rowLength :: Buffer -> Int -> Int
 rowLength buffer row = T.length $ buffer `S.index` row
@@ -38,20 +38,22 @@ move :: State -> (Cursor -> Cursor) -> State
 move state f =
   let newCursor = f $ stateCursor state
       newCursor' = clampCursor' state newCursor
-   in state { stateCursor = newCursor' }
+   in state {stateCursor = newCursor'}
 
 moveLeft :: State -> State
-moveLeft state = move state $ \(row, column) ->
-  if column > 0
-     then (row, column - 1)
-     else (row - 1, maxBound)
+moveLeft state =
+  move state $ \(row, column) ->
+    if column > 0
+      then (row, column - 1)
+      else (row - 1, maxBound)
 
 moveRight :: State -> State
-moveRight state = move state $ \(row, column) ->
-  let columns = rowLength' state row
-   in if column < columns
-         then (row, column + 1)
-         else (row + 1, 0)
+moveRight state =
+  move state $ \(row, column) ->
+    let columns = rowLength' state row
+     in if column < columns
+          then (row, column + 1)
+          else (row + 1, 0)
 
 moveUp :: State -> State
 moveUp state = move state $ \(row, column) -> (row - 1, column)
