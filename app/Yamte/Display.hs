@@ -101,9 +101,9 @@ draw' displayState state = do
                 moveCursor (toInteger screenIndex) 1
                 drawString "~"
 
-    updateWindow (bufferWindow displayState) $ do
-        clear
-        forM_ lines $ \(screenIndex, actualIndex, line) -> do
+    updateWindow (bufferWindow displayState)  clear
+    forM_ lines $ \(screenIndex, actualIndex, line) ->
+        tryCurses $ updateWindow (bufferWindow displayState) $ do
             moveCursor (toInteger screenIndex) 0
             drawText
                 $ T.take (fromIntegral columns)
