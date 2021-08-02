@@ -1,0 +1,32 @@
+name: Beautify
+
+on: push
+
+concurrency: commit
+
+jobs:
+  beautify:
+    name: Beautify code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Nix
+        uses: cachix/install-nix-action@v13
+        env:
+          NIX_VERSION: nix-2.4pre20210604_8e6ee1b
+        with:
+          install_url: https://github.com/numtide/nix-unstable-installer/releases/download/${{ env.NIX_VERSION }}/install
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Format code using hindent
+        run: nix run nixpkgs#haskellPackages.hindent -- $(find . -type f -name '*.hs')
+
+      - name: Commit and push changes
+        uses: EndBug/add-and-commit@v7
+        with:
+          message: 'Beautify ${{ github.sha }} :art:'
+          default_author: github_actions
