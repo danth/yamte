@@ -1,6 +1,6 @@
 module Yamte.Display (
-  Windows,
-  createWindows,
+  DisplayState,
+  createDisplayState,
   draw,
   Yamte.Display.getEvent
 ) where
@@ -12,17 +12,19 @@ import qualified Data.Text as T
 import UI.NCurses
 import Yamte.Editor (Mode(Mode), State(..), activeMode)
 
-data Windows  = Windows { statusWindow :: Window
-                        , sidebarWindow :: Window
-                        , bufferWindow :: Window
-                        , messageWindow :: Window
-                        }
+type View = (Int, Int)
+data DisplayState  = DisplayState { statusWindow :: Window
+                                  , sidebarWindow :: Window
+                                  , bufferWindow :: Window
+                                  , messageWindow :: Window
+                                  , view :: View
+                                  }
 
 invertBackground :: Update ()
 invertBackground = setBackground $ Glyph ' ' [AttributeReverse]
 
-createWindows :: Curses Windows
-createWindows = do
+createDisplayState :: Curses DisplayState
+createDisplayState = do
     (rows, columns) <- screenSize
 
     status <- newWindow 1 columns 0 0
@@ -36,18 +38,37 @@ createWindows = do
     message <- newWindow 1 columns (rows-1) 0
     updateWindow message invertBackground
 
-    return Windows { statusWindow = status
-                   , sidebarWindow = sidebar
-                   , bufferWindow = buffer
-                   , messageWindow = message
-                   }
+    return DisplayState { statusWindow = status
+                        , sidebarWindow = sidebar
+                        , bufferWindow = buffer
+                        , messageWindow = message
+                        , view = (0, 0)
+                        }
+
+scrollAxis :: Int -> Int -> Int -> Int
+scrollAxis cursorPosition scrollOffset displaySize
+  | cursorPosition < scrollOffset = cursorPosition
+  | cursorPosition >= scrollOffset + displaySize = cursorPosition - displaySize + 1
+  | otherwise = scrollOffset
+
+scroll :: DisplayState -> State -> Curses DisplayState
+scroll displayState state = updateWindow (bufferWindow displayState) $ do
+    let (row, column) = stateCursor state
+        (rowOffset, columnOffset) = view displayState
+    (rows, columns) <- windowSize
+    let view' = ( scrollAxis row rowOffset (fromIntegral rows)
+                , scrollAxis column columnOffset (fromIntegral columns)
+                )
+    return displayState { view = view' }
 
 statusLine :: [String] -> String
 statusLine = intercalate " • "
 
-draw :: Windows -> State -> Curses ()
-draw windows state = do
-    updateWindow (statusWindow windows) $ do
+draw' :: DisplayState -> State -> Curses ()
+draw' displayState state = do
+    let (rowOffset, columnOffset) = view displayState
+
+    updateWindow (statusWindow displayState) $ do
         clear
         moveCursor 0 4
         drawString $ statusLine
@@ -60,37 +81,51 @@ draw windows state = do
                  Just (Mode name _) -> name ++ " mode")
             ]
 
-    updateWindow (sidebarWindow windows) $ do
+    (rows, columns) <- updateWindow (bufferWindow displayState) windowSize
+    let scrolledBuffer :: S.Seq T.Text
+        scrolledBuffer =
+            S.take (fromIntegral rows)
+            $ S.drop rowOffset
+            $ stateBuffer state
+        lines :: S.Seq (Int, Int, T.Text)
+        lines = S.mapWithIndex (\i l -> (i, i + rowOffset, l)) scrolledBuffer
+
+    updateWindow (sidebarWindow displayState) $ do
         clear
-        (rows, columns) <- windowSize
-        forM_ [0..(rows-1)] $ \i ->
-            if i < (toInteger $ length $ stateBuffer state)
+        forM_ lines $ \(screenIndex, actualIndex, line) -> do
+            if actualIndex < (length $ stateBuffer state)
             then do
-                moveCursor i 0
-                drawString $ show i
+                moveCursor (toInteger screenIndex) 0
+                drawString $ show actualIndex
             else do
-                moveCursor i 1
+                moveCursor (toInteger screenIndex) 1
                 drawString "~"
 
-    updateWindow (bufferWindow windows) $ do
+    updateWindow (bufferWindow displayState) $ do
         clear
-        (rows, columns) <- windowSize
-        let numberedLines :: S.Seq (Int, T.Text)
-            numberedLines = S.mapWithIndex (\i l -> (i, l)) $ stateBuffer state
-        forM_ numberedLines $ \(i, line) -> do
-            moveCursor (toInteger i) 0
-            drawText $ T.take ((fromIntegral columns) - 1) line
+        forM_ lines $ \(screenIndex, actualIndex, line) -> do
+            moveCursor (toInteger screenIndex) 0
+            drawText
+                $ T.take (fromIntegral columns)
+                $ T.drop columnOffset line
 
-    updateWindow (messageWindow windows) $ do
+    updateWindow (messageWindow displayState) $ do
         clear
         moveCursor 0 4
         drawString $ stateMessage state
 
-    updateWindow (bufferWindow windows) $
+    updateWindow (bufferWindow displayState) $
         let (row, column) = stateCursor state
-         in moveCursor (fromIntegral row) (fromIntegral column)
+            row' = (fromIntegral row) - rowOffset
+            column' = (fromIntegral column) - columnOffset
+         in moveCursor (fromIntegral row') (fromIntegral column')
 
     render
 
-getEvent :: Windows -> Curses (Maybe Event)
-getEvent windows = UI.NCurses.getEvent (bufferWindow windows) Nothing
+draw :: DisplayState -> State -> Curses ()
+draw displayState state = do
+    displayState' <- scroll displayState state
+    draw' displayState' state
+
+getEvent :: DisplayState -> Curses (Maybe Event)
+getEvent displayState = UI.NCurses.getEvent (bufferWindow displayState) Nothing
