@@ -3,7 +3,7 @@ module Yamte.Mode.Input (inputMode) where
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 import Yamte.Editor
-import Yamte.Cursor (moveLeft, moveRight)
+import Yamte.Cursor (moveLeft, moveRight, moveHome, moveDown)
 import UI.NCurses (Key(..))
 
 deleteColumn :: Int -> T.Text -> T.Text
@@ -33,9 +33,21 @@ backspace' (row, column) state = moveLeft $ state
 backspace :: State -> State
 backspace state = backspace' (stateCursor state) state
 
+insertNewline' :: Cursor -> Buffer -> Buffer
+insertNewline' (row, column) buffer
+  | row >= S.length buffer = buffer
+  | otherwise = let line = buffer `S.index` row
+                    (front, back) = T.splitAt column line
+                 in S.insertAt (row + 1) back $ S.update row front buffer
+
+insertNewline :: State -> State
+insertNewline state = moveHome $ moveDown $ state
+  { stateBuffer = insertNewline' (stateCursor state) (stateBuffer state) }
+
 handleTrigger :: Trigger -> State -> ModeResponse
 handleTrigger (Right KeyBackspace) = NewState . backspace
 handleTrigger (Right KeyDeleteCharacter) = NewState . backspace . moveRight
+handleTrigger (Left '\n') = NewState . insertNewline
 handleTrigger (Right _) = const Propagate
 handleTrigger (Left '\^Q') = const Propagate
 handleTrigger (Left _) = const DoNothing
