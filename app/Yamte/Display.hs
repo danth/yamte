@@ -92,17 +92,17 @@ draw' displayState state = do
 
     updateWindow (sidebarWindow displayState) $ do
         clear
-        forM_ lines $ \(screenIndex, actualIndex, line) -> do
-            if actualIndex < (length $ stateBuffer state)
+        forM_ lines $ \(screenIndex, lineNumber, line) -> do
+            if lineNumber <= (length $ stateBuffer state)
             then do
                 moveCursor (toInteger screenIndex) 0
-                drawString $ show actualIndex
+                drawString $ show lineNumber
             else do
                 moveCursor (toInteger screenIndex) 1
                 drawString "~"
 
     updateWindow (bufferWindow displayState)  clear
-    forM_ lines $ \(screenIndex, actualIndex, line) ->
+    forM_ lines $ \(screenIndex, lineNumber, line) ->
         tryCurses $ updateWindow (bufferWindow displayState) $ do
             moveCursor (toInteger screenIndex) 0
             drawText
