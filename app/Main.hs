@@ -13,10 +13,11 @@ eventLoop displayState state = do
     event <- getEvent displayState
     case event of
       Nothing -> eventLoop displayState' state
-      Just e -> let state' = handleEvent e state
-                 in case activeMode state' of
-                      Nothing -> return ()
-                      Just _ -> eventLoop displayState' state'
+      Just e -> do
+          state' <- liftIO $ handleEvent e state
+          case activeMode state' of
+            Nothing -> return ()
+            Just _ -> eventLoop displayState' state'
 
 main :: IO ()
 main = runCurses $ do

@@ -7,19 +7,21 @@ module Yamte.Editor (
   State(..),
   initialState,
   loadFile,
+  saveFile,
   activeMode,
   enterMode,
   leaveMode,
   handleEvent
 ) where
 
+import Data.Foldable (toList)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 import UI.NCurses (Key, Event(EventCharacter, EventSpecialKey))
 
 type Trigger = Either Char Key
 data ModeResponse = NewState State | Propagate | DoNothing
-data Mode = Mode String (Trigger -> State -> ModeResponse)
+data Mode = Mode String (Trigger -> State -> IO ModeResponse)
 
 type Buffer = S.Seq T.Text
 type Cursor = (Int, Int)
@@ -46,6 +48,14 @@ loadFile filename state = do
                    , stateMessage = "Opened " ++ filename
                    }
 
+saveFile :: State -> IO State
+saveFile state =
+  case stateFilename state of
+    Nothing -> return state
+    Just filename -> do
+      writeFile filename $ T.unpack $ T.unlines $ toList $ stateBuffer state
+      return state { stateMessage = "Saved " ++ filename }
+
 activeMode :: State -> Maybe Mode
 activeMode state = case stateModes state of
                      [] -> Nothing
@@ -62,16 +72,17 @@ getTrigger (EventCharacter character) = Just $ Left character
 getTrigger (EventSpecialKey key) = Just $ Right key
 getTrigger _ = Nothing
 
-handleTrigger :: Trigger -> State -> [Mode] -> State
-handleTrigger trigger state [] = state
-handleTrigger trigger state (mode:modes) =
+handleTrigger :: Trigger -> State -> [Mode] -> IO State
+handleTrigger trigger state [] = return state
+handleTrigger trigger state (mode:modes) = do
   let (Mode _ f) = mode
-   in case f trigger state of
-        NewState state' -> state'
-        Propagate -> handleTrigger trigger state modes
-        DoNothing -> state
+  response <- f trigger state
+  case response of
+    NewState state' -> return state'
+    Propagate -> handleTrigger trigger state modes
+    DoNothing -> return state
 
-handleEvent :: Event -> State -> State
+handleEvent :: Event -> State -> IO State
 handleEvent event state = case getTrigger event of
-        Nothing -> state
+        Nothing -> return state
         Just trigger -> handleTrigger trigger state (stateModes state)

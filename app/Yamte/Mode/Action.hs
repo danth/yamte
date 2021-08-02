@@ -7,6 +7,7 @@ import Yamte.Mode.Input (inputMode)
 import UI.NCurses (Key(..))
 
 data Action = Action Trigger (State -> State)
+            | IOAction Trigger (State -> IO State)
 
 actions = [ (Action (Left '\^Q') leaveMode)
           , (Action (Left 'a') moveLeft)
@@ -24,16 +25,24 @@ actions = [ (Action (Left '\^Q') leaveMode)
           , (Action (Left '\^D') moveEnd)
           , (Action (Right KeyEnd) moveEnd)
           , (Action (Left 'e') $ enterMode inputMode)
+          , (IOAction (Left '\^O') saveFile)
           ]
 
-getAction :: Trigger -> Maybe Action
-getAction trigger = find (\(Action t _) -> t == trigger) actions
+getTrigger :: Action -> Trigger
+getTrigger (Action trigger _) = trigger
+getTrigger (IOAction trigger _) = trigger
 
-handleTrigger :: Trigger -> State -> ModeResponse
+getAction :: Trigger -> Maybe Action
+getAction trigger = find (\action -> getTrigger action == trigger) actions
+
+handleTrigger :: Trigger -> State -> IO ModeResponse
 handleTrigger trigger state =
     case getAction trigger of
-      Nothing -> Propagate
-      Just (Action _ f) -> NewState $ f state
+      Nothing -> return Propagate
+      Just (Action _ f) -> return $ NewState $ f state
+      Just (IOAction _ f) -> do
+        state' <- f state
+        return $ NewState state'
 
 actionMode :: Mode
 actionMode = Mode "Action" handleTrigger

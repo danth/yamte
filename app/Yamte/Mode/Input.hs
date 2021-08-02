@@ -63,5 +63,8 @@ handleTrigger (Left character)
   | isPrint character = NewState . insertCharacter character
   | otherwise = const DoNothing
 
+handleTrigger' :: Trigger -> State -> IO ModeResponse
+handleTrigger' trigger state = return $ handleTrigger trigger state
+
 inputMode :: Mode
-inputMode = Mode "Input" handleTrigger
+inputMode = Mode "Input" handleTrigger'
