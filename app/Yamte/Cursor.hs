@@ -20,11 +20,10 @@ rowLength' :: State -> Int -> Int
 rowLength' state = rowLength $ stateBuffer state
 
 clamp :: Ord a => a -> a -> a -> a
-clamp min max value = if value < min
-                         then min
-                         else if value > max
-                                  then max
-                                  else value
+clamp min max value
+  | value < min = min
+  | value > max = max
+  | otherwise = value
 
 clampCursor :: Buffer -> Cursor -> Cursor
 clampCursor buffer (row, column) =
