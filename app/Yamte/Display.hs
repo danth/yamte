@@ -93,13 +93,8 @@ draw' displayState state = do
     updateWindow (sidebarWindow displayState) $ do
         clear
         forM_ lines $ \(screenIndex, lineNumber, line) -> do
-            if lineNumber <= (length $ stateBuffer state)
-            then do
-                moveCursor (toInteger screenIndex) 0
-                drawString $ show lineNumber
-            else do
-                moveCursor (toInteger screenIndex) 1
-                drawString "~"
+            moveCursor (toInteger screenIndex) 0
+            drawString $ show lineNumber
 
     updateWindow (bufferWindow displayState)  clear
     forM_ lines $ \(screenIndex, lineNumber, line) ->
