@@ -1,5 +1,6 @@
 module Yamte.Mode.Input (inputMode) where
 
+import Data.Char (isPrint)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 import Yamte.Editor
@@ -41,13 +42,26 @@ insertNewline :: State -> State
 insertNewline state = moveHome $ moveDown $ state
   { stateBuffer = insertNewline' (stateCursor state) (stateBuffer state) }
 
+insertCharacter' :: Char -> Cursor -> Buffer -> Buffer
+insertCharacter' character (row, column) buffer =
+  let line = buffer `S.index` row
+      (front, back) = T.splitAt column line
+      line' = front `T.append` (character `T.cons` back)
+   in S.update row line' buffer
+
+insertCharacter :: Char -> State -> State
+insertCharacter character state = moveRight $ state
+  { stateBuffer = insertCharacter' character (stateCursor state) (stateBuffer state) }
+
 handleTrigger :: Trigger -> State -> ModeResponse
 handleTrigger (Right KeyBackspace) = NewState . backspace
 handleTrigger (Right KeyDeleteCharacter) = NewState . backspace . moveRight
 handleTrigger (Left '\n') = NewState . insertNewline
 handleTrigger (Right _) = const Propagate
 handleTrigger (Left '\^Q') = const Propagate
-handleTrigger (Left _) = const DoNothing
+handleTrigger (Left character)
+  | isPrint character = NewState . insertCharacter character
+  | otherwise = const DoNothing
 
 inputMode :: Mode
 inputMode = Mode "Input" handleTrigger
