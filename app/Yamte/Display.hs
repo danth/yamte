@@ -88,7 +88,7 @@ draw' displayState state = do
             $ S.drop rowOffset
             $ stateBuffer state
         lines :: S.Seq (Int, Int, T.Text)
-        lines = S.mapWithIndex (\i l -> (i, i + rowOffset, l)) scrolledBuffer
+        lines = S.mapWithIndex (\i l -> (i, i + rowOffset + 1, l)) scrolledBuffer
 
     updateWindow (sidebarWindow displayState) $ do
         clear
