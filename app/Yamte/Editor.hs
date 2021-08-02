@@ -33,7 +33,7 @@ data State = State { stateBuffer :: Buffer
                    }
 
 initialState :: State
-initialState = State { stateBuffer = S.empty
+initialState = State { stateBuffer = S.singleton T.empty
                      , stateFilename = Nothing
                      , stateMessage = "Welcome to Yamte!"
                      , stateModes = []
