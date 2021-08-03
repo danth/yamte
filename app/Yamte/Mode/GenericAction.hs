@@ -15,7 +15,8 @@ getTrigger (Action trigger _) = trigger
 getTrigger (IOAction trigger _) = trigger
 
 findAction :: [Action] -> Trigger -> Maybe Action
-findAction actions trigger = find (\action -> getTrigger action == trigger) actions
+findAction actions trigger =
+  find (\action -> getTrigger action == trigger) actions
 
 handleTrigger :: [Action] -> Trigger -> State -> IO ModeResponse
 handleTrigger actions trigger state =

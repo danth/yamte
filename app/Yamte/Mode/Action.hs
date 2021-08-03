@@ -4,9 +4,9 @@ module Yamte.Mode.Action
 
 import UI.NCurses (Key(..))
 import Yamte.Cursor
-import Yamte.Editor (Mode, leaveMode, enterMode, saveFile)
-import Yamte.Mode.Input (inputMode)
+import Yamte.Editor (Mode, enterMode, leaveMode, saveFile)
 import Yamte.Mode.GenericAction
+import Yamte.Mode.Input (inputMode)
 
 actions =
   [ (Action (Left '\^Q') leaveMode)
