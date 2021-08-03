@@ -160,7 +160,8 @@ drawStatus displayState state =
              Just syntax -> (T.unpack $ sName syntax) ++ " highlighting")
         ]
 
-drawSidebar :: DisplayState -> [(Int, Int, Either T.Text SourceLine)] -> Curses ()
+drawSidebar ::
+     DisplayState -> [(Int, Int, Either T.Text SourceLine)] -> Curses ()
 drawSidebar displayState lines =
   updateWindow (sidebarWindow displayState) $ do
     clear
@@ -168,12 +169,14 @@ drawSidebar displayState lines =
       moveCursor (toInteger screenIndex) 0
       drawString $ show lineNumber
 
-drawBuffer :: DisplayState -> [(Int, Int, Either T.Text SourceLine)] -> Curses ()
+drawBuffer ::
+     DisplayState -> [(Int, Int, Either T.Text SourceLine)] -> Curses ()
 drawBuffer displayState lines = do
   let (rowOffset, columnOffset) = view displayState
-  (rows, columns) <- updateWindow (bufferWindow displayState) $ do
-    clear
-    windowSize
+  (rows, columns) <-
+    updateWindow (bufferWindow displayState) $ do
+      clear
+      windowSize
   forM_ lines $ \(screenIndex, lineNumber, line) ->
     tryCurses $
     updateWindow (bufferWindow displayState) $ do
