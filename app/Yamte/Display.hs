@@ -17,7 +17,7 @@ import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Tokenizer (TokenizerConfig(..), tokenize)
 import Skylighting.Types (SourceLine, TokenType(..), defaultFormatOpts)
 import UI.NCurses
-import Yamte.Editor (Buffer, Mode(Mode), State(..), activeMode)
+import Yamte.Editor (Buffer, Cursor, Mode(Mode), State(..), activeMode)
 
 type Style = M.Map TokenType ColorID
 
@@ -138,9 +138,8 @@ highlightBuffer buffer (Just syntax) =
     (Left error) -> map Left $ toList buffer
     (Right sourceLines) -> map Right sourceLines
 
-draw' :: DisplayState -> State -> Curses ()
-draw' displayState state = do
-  let (rowOffset, columnOffset) = view displayState
+drawStatus :: DisplayState -> State -> Curses ()
+drawStatus displayState state =
   updateWindow (statusWindow displayState) $ do
     clear
     moveCursor 0 4
@@ -160,21 +159,21 @@ draw' displayState state = do
              Nothing -> "No highlighting"
              Just syntax -> (T.unpack $ sName syntax) ++ " highlighting")
         ]
-  (rows, columns) <- updateWindow (bufferWindow displayState) windowSize
-  let highlightedBuffer :: [Either T.Text SourceLine]
-      highlightedBuffer =
-        highlightBuffer (stateBuffer state) (stateSyntax state)
-      scrolledBuffer :: [Either T.Text SourceLine]
-      scrolledBuffer =
-        take (fromIntegral rows) $ drop rowOffset highlightedBuffer
-      lines :: [(Int, Int, Either T.Text SourceLine)]
-      lines = imap (\i l -> (i, i + rowOffset + 1, l)) scrolledBuffer
+
+drawSidebar :: DisplayState -> [(Int, Int, Either T.Text SourceLine)] -> Curses ()
+drawSidebar displayState lines =
   updateWindow (sidebarWindow displayState) $ do
     clear
     forM_ lines $ \(screenIndex, lineNumber, line) -> do
       moveCursor (toInteger screenIndex) 0
       drawString $ show lineNumber
-  updateWindow (bufferWindow displayState) clear
+
+drawBuffer :: DisplayState -> [(Int, Int, Either T.Text SourceLine)] -> Curses ()
+drawBuffer displayState lines = do
+  let (rowOffset, columnOffset) = view displayState
+  (rows, columns) <- updateWindow (bufferWindow displayState) $ do
+    clear
+    windowSize
   forM_ lines $ \(screenIndex, lineNumber, line) ->
     tryCurses $
     updateWindow (bufferWindow displayState) $ do
@@ -188,16 +187,40 @@ draw' displayState state = do
               M.findWithDefault defaultColorID tokenType (style displayState)
             drawText tokenText
             setColor defaultColorID
+
+drawMessage :: DisplayState -> State -> Curses ()
+drawMessage displayState state =
   updateWindow (messageWindow displayState) $ do
     clear
     moveCursor 0 4
     (rows, columns) <- windowSize
     drawString $ take ((fromIntegral columns) - 5) $ stateMessage state
-  updateWindow (bufferWindow displayState) $
-    let (row, column) = stateCursor state
-        row' = (fromIntegral row) - rowOffset
-        column' = (fromIntegral column) - columnOffset
-     in moveCursor (fromIntegral row') (fromIntegral column')
+
+positionCursor :: DisplayState -> Cursor -> Curses ()
+positionCursor displayState (row, column) =
+  let (rowOffset, columnOffset) = view displayState
+      row' = (fromIntegral row) - rowOffset
+      column' = (fromIntegral column) - columnOffset
+   in updateWindow (bufferWindow displayState) $
+      moveCursor (fromIntegral row') (fromIntegral column')
+
+draw' :: DisplayState -> State -> Curses ()
+draw' displayState state = do
+  (rows, columns) <- updateWindow (bufferWindow displayState) windowSize
+  let (rowOffset, columnOffset) = view displayState
+      highlightedBuffer :: [Either T.Text SourceLine]
+      highlightedBuffer =
+        highlightBuffer (stateBuffer state) (stateSyntax state)
+      scrolledBuffer :: [Either T.Text SourceLine]
+      scrolledBuffer =
+        take (fromIntegral rows) $ drop rowOffset highlightedBuffer
+      lines :: [(Int, Int, Either T.Text SourceLine)]
+      lines = imap (\i l -> (i, i + rowOffset + 1, l)) scrolledBuffer
+  drawStatus displayState state
+  drawSidebar displayState lines
+  drawBuffer displayState lines
+  drawMessage displayState state
+  positionCursor displayState (stateCursor state)
   render
 
 draw :: DisplayState -> State -> Curses DisplayState
