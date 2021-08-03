@@ -36,6 +36,7 @@ type Cursor = (Int, Int)
 data State =
   State
     { stateBuffer :: Buffer
+    , stateTouched :: Bool
     , stateFilename :: Maybe String
     , stateMessage :: String
     , stateModes :: [Mode]
@@ -46,6 +47,7 @@ initialState :: State
 initialState =
   State
     { stateBuffer = S.singleton T.empty
+    , stateTouched = False
     , stateFilename = Nothing
     , stateMessage = "Welcome to Yamte!"
     , stateModes = []
@@ -68,7 +70,7 @@ saveFile state =
     Nothing -> return state
     Just filename -> do
       writeFile filename $ T.unpack $ T.unlines $ toList $ stateBuffer state
-      return state {stateMessage = "Saved " ++ filename}
+      return state {stateMessage = "Saved " ++ filename, stateTouched = False}
 
 activeMode :: State -> Maybe Mode
 activeMode state =

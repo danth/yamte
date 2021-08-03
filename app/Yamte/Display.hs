@@ -77,6 +77,9 @@ draw' displayState state = do
         [ (case stateFilename state of
              Nothing -> "[No name]"
              Just filename -> filename)
+        , (if stateTouched state
+             then "Touched"
+             else "Untouched")
         , (show (length $ stateBuffer state) ++ " lines")
         , (case activeMode state of
              Nothing -> "Not in a mode"

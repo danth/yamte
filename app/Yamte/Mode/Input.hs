@@ -28,10 +28,14 @@ backspace' (row, 0) state =
    in state
         { stateCursor = (row', T.length $ buffer `S.index` row')
         , stateBuffer = deleteNewline row buffer
+        , stateTouched = True
         }
 backspace' (row, column) state =
   moveLeft $
-  state {stateBuffer = S.adjust' (deleteColumn column) row (stateBuffer state)}
+  state
+    { stateBuffer = S.adjust' (deleteColumn column) row (stateBuffer state)
+    , stateTouched = True
+    }
 
 backspace :: State -> State
 backspace state = backspace' (stateCursor state) state
@@ -46,7 +50,10 @@ insertNewline :: State -> State
 insertNewline state =
   moveHome $
   moveDown $
-  state {stateBuffer = insertNewline' (stateCursor state) (stateBuffer state)}
+  state
+    { stateBuffer = insertNewline' (stateCursor state) (stateBuffer state)
+    , stateTouched = True
+    }
 
 insertCharacter' :: Char -> Cursor -> Buffer -> Buffer
 insertCharacter' character (row, column) buffer =
@@ -61,6 +68,7 @@ insertCharacter character state =
   state
     { stateBuffer =
         insertCharacter' character (stateCursor state) (stateBuffer state)
+    , stateTouched = True
     }
 
 handleTrigger :: Trigger -> State -> ModeResponse
