@@ -2,7 +2,7 @@ module Yamte.Mode.File
   ( fileMode
   ) where
 
-import Yamte.Editor (Mode, reloadFile, saveFile, leaveMode)
+import Yamte.Editor (Mode, leaveMode, reloadFile, saveFile)
 import Yamte.Mode.GenericAction
 
 actions :: [Action]

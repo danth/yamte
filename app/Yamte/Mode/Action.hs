@@ -5,9 +5,9 @@ module Yamte.Mode.Action
 import UI.NCurses (Key(..))
 import Yamte.Cursor
 import Yamte.Editor (Mode, enterMode, leaveMode)
+import Yamte.Mode.File (fileMode)
 import Yamte.Mode.GenericAction
 import Yamte.Mode.Input (inputMode)
-import Yamte.Mode.File (fileMode)
 
 actions :: [Action]
 actions =
