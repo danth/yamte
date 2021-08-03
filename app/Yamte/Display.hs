@@ -77,7 +77,8 @@ draw' displayState state = do
   updateWindow (statusWindow displayState) $ do
     clear
     moveCursor 0 4
-    drawString $
+    (rows, columns) <- windowSize
+    drawString $ take ((fromIntegral columns) - 5) $
       statusLine
         [ (case stateFilename state of
              Nothing -> "[No name]"
@@ -108,7 +109,8 @@ draw' displayState state = do
   updateWindow (messageWindow displayState) $ do
     clear
     moveCursor 0 4
-    drawString $ stateMessage state
+    (rows, columns) <- windowSize
+    drawString $ take ((fromIntegral columns) - 5) $ stateMessage state
   updateWindow (bufferWindow displayState) $
     let (row, column) = stateCursor state
         row' = (fromIntegral row) - rowOffset
