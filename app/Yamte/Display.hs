@@ -19,7 +19,7 @@ import Skylighting.Types (SourceLine, Token, TokenType(..), defaultFormatOpts)
 import UI.NCurses
 import Yamte.Editor (Buffer, Cursor, Mode(Mode), State(..), activeMode)
 
-type Style = M.Map TokenType ColorID
+type Style = M.Map TokenType (ColorID, [Attribute])
 
 type View = (Int, Int)
 
@@ -44,40 +44,39 @@ createStyle = do
   blue <- newColorID ColorBlue ColorBlack 4
   magenta <- newColorID ColorMagenta ColorBlack 5
   cyan <- newColorID ColorCyan ColorBlack 6
-  comment <- newColorID ColorBlack ColorBlue 7
   return $
     M.fromList
-      [ (KeywordTok, blue)
-      , (DataTypeTok, green)
-      , (DecValTok, red)
-      , (BaseNTok, red)
-      , (FloatTok, red)
-      , (ConstantTok, magenta)
-      , (CharTok, green)
-      , (SpecialCharTok, red)
-      , (StringTok, green)
-      , (VerbatimStringTok, green)
-      , (SpecialStringTok, green)
-      , (ImportTok, magenta)
-      , (CommentTok, comment)
-      , (DocumentationTok, comment)
-      , (AnnotationTok, comment)
-      , (CommentVarTok, comment)
-      , (OtherTok, defaultColorID)
-      , (FunctionTok, yellow)
-      , (VariableTok, yellow)
-      , (ControlFlowTok, cyan)
-      , (OperatorTok, cyan)
-      , (BuiltInTok, cyan)
-      , (ExtensionTok, magenta)
-      , (PreprocessorTok, magenta)
-      , (AttributeTok, yellow)
-      , (RegionMarkerTok, comment)
-      , (InformationTok, cyan)
-      , (WarningTok, yellow)
-      , (AlertTok, yellow)
-      , (ErrorTok, red)
-      , (NormalTok, defaultColorID)
+      [ (KeywordTok, (blue, []))
+      , (DataTypeTok, (green, []))
+      , (DecValTok, (red, []))
+      , (BaseNTok, (red, []))
+      , (FloatTok, (red, []))
+      , (ConstantTok, (magenta, []))
+      , (CharTok, (green, []))
+      , (SpecialCharTok, (red, []))
+      , (StringTok, (green, []))
+      , (VerbatimStringTok, (green, []))
+      , (SpecialStringTok, (green, []))
+      , (ImportTok, (magenta, []))
+      , (CommentTok, (defaultColorID, [AttributeBold]))
+      , (DocumentationTok, (defaultColorID, [AttributeBold]))
+      , (AnnotationTok, (defaultColorID, [AttributeBold]))
+      , (CommentVarTok, (defaultColorID, [AttributeBold]))
+      , (OtherTok, (defaultColorID, []))
+      , (FunctionTok, (yellow, []))
+      , (VariableTok, (yellow, []))
+      , (ControlFlowTok, (cyan, []))
+      , (OperatorTok, (cyan, []))
+      , (BuiltInTok, (cyan, []))
+      , (ExtensionTok, (magenta, []))
+      , (PreprocessorTok, (magenta, []))
+      , (AttributeTok, (yellow, []))
+      , (RegionMarkerTok, (defaultColorID, [AttributeBold]))
+      , (InformationTok, (cyan, []))
+      , (WarningTok, (yellow, []))
+      , (AlertTok, (yellow, []))
+      , (ErrorTok, (red, []))
+      , (NormalTok, (defaultColorID, []))
       ]
 
 createDisplayState :: Curses DisplayState
@@ -171,8 +170,9 @@ drawSidebar displayState lines =
 
 drawToken :: DisplayState -> Token -> Update ()
 drawToken displayState (tokenType, tokenText) =
-  let color = M.findWithDefault defaultColorID tokenType $ style displayState
+  let (color, attributes) = M.findWithDefault (defaultColorID, []) tokenType $ style displayState
    in do setColor color
+         setAttributes attributes
          drawText tokenText
 
 drawLine :: DisplayState -> (Int, Int, Either T.Text SourceLine) -> Update ()
