@@ -2,15 +2,11 @@ module Yamte.Mode.Action
   ( actionMode
   ) where
 
-import Data.List (find)
 import UI.NCurses (Key(..))
 import Yamte.Cursor
-import Yamte.Editor
+import Yamte.Editor (Mode, leaveMode, enterMode, saveFile)
 import Yamte.Mode.Input (inputMode)
-
-data Action
-  = Action Trigger (State -> State)
-  | IOAction Trigger (State -> IO State)
+import Yamte.Mode.GenericAction
 
 actions =
   [ (Action (Left '\^Q') leaveMode)
@@ -32,21 +28,5 @@ actions =
   , (IOAction (Left '\^O') saveFile)
   ]
 
-getTrigger :: Action -> Trigger
-getTrigger (Action trigger _) = trigger
-getTrigger (IOAction trigger _) = trigger
-
-getAction :: Trigger -> Maybe Action
-getAction trigger = find (\action -> getTrigger action == trigger) actions
-
-handleTrigger :: Trigger -> State -> IO ModeResponse
-handleTrigger trigger state =
-  case getAction trigger of
-    Nothing -> return Propagate
-    Just (Action _ f) -> return $ NewState $ f state
-    Just (IOAction _ f) -> do
-      state' <- f state
-      return $ NewState state'
-
 actionMode :: Mode
-actionMode = Mode "Action" handleTrigger
+actionMode = makeActionMode "Action" actions
