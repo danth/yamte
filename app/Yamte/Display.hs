@@ -170,7 +170,8 @@ drawSidebar displayState lines =
 
 drawToken :: DisplayState -> Token -> Update ()
 drawToken displayState (tokenType, tokenText) =
-  let (color, attributes) = M.findWithDefault (defaultColorID, []) tokenType $ style displayState
+  let (color, attributes) =
+        M.findWithDefault (defaultColorID, []) tokenType $ style displayState
    in do setColor color
          setAttributes attributes
          drawText tokenText
