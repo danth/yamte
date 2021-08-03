@@ -66,6 +66,11 @@ scroll displayState state =
 statusLine :: [String] -> String
 statusLine = intercalate " • "
 
+modeStatus :: [Mode] -> String
+modeStatus modes =
+  let modeNames = reverse $ map (\(Mode name _) -> name) modes
+   in (intercalate " → " modeNames) ++ " mode"
+
 draw' :: DisplayState -> State -> Curses ()
 draw' displayState state = do
   let (rowOffset, columnOffset) = view displayState
@@ -81,9 +86,7 @@ draw' displayState state = do
              then "Touched"
              else "Untouched")
         , (show (length $ stateBuffer state) ++ " lines")
-        , (case activeMode state of
-             Nothing -> "Not in a mode"
-             Just (Mode name _) -> name ++ " mode")
+        , (modeStatus $ stateModes state)
         ]
   (rows, columns) <- updateWindow (bufferWindow displayState) windowSize
   let scrolledBuffer :: S.Seq T.Text
