@@ -74,12 +74,15 @@ reloadFile state =
           }
 
 loadFile :: String -> State -> IO State
-loadFile filename state = reloadFile $ state
-  { stateFilename = Just filename
-  , stateSyntax = case syntaxesByFilename defaultSyntaxMap filename of
-                    [] -> Nothing
-                    syntax:syntaxes -> Just syntax
-  }
+loadFile filename state =
+  reloadFile $
+  state
+    { stateFilename = Just filename
+    , stateSyntax =
+        case syntaxesByFilename defaultSyntaxMap filename of
+          [] -> Nothing
+          syntax:syntaxes -> Just syntax
+    }
 
 saveFile :: State -> IO State
 saveFile state =

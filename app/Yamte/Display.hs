@@ -6,19 +6,19 @@ module Yamte.Display
   ) where
 
 import Control.Monad (forM_)
+import Data.Foldable (toList)
 import Data.List (intercalate)
 import Data.List.Index (imap)
-import Data.Foldable (toList)
 import qualified Data.Map as M
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 import Skylighting (Syntax(..))
-import Skylighting.Types (SourceLine, TokenType(..), defaultFormatOpts)
+import Skylighting.Format.ANSI (formatANSI)
 import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Tokenizer (TokenizerConfig(..), tokenize)
-import Skylighting.Format.ANSI (formatANSI)
+import Skylighting.Types (SourceLine, TokenType(..), defaultFormatOpts)
 import UI.NCurses
-import Yamte.Editor (Mode(Mode), State(..), Buffer, activeMode)
+import Yamte.Editor (Buffer, Mode(Mode), State(..), activeMode)
 
 type Style = M.Map TokenType ColorID
 
@@ -46,38 +46,40 @@ createStyle = do
   magenta <- newColorID ColorMagenta ColorBlack 5
   cyan <- newColorID ColorCyan ColorBlack 6
   comment <- newColorID ColorBlack ColorBlue 7
-  return $ M.fromList [ (KeywordTok, blue)
-                      , (DataTypeTok, green)
-                      , (DecValTok, red)
-                      , (BaseNTok, red)
-                      , (FloatTok, red)
-                      , (ConstantTok, magenta)
-                      , (CharTok, green)
-                      , (SpecialCharTok, red)
-                      , (StringTok, green)
-                      , (VerbatimStringTok, green)
-                      , (SpecialStringTok, green)
-                      , (ImportTok, magenta)
-                      , (CommentTok, comment)
-                      , (DocumentationTok, comment)
-                      , (AnnotationTok, comment)
-                      , (CommentVarTok, comment)
-                      , (OtherTok, defaultColorID)
-                      , (FunctionTok, yellow)
-                      , (VariableTok, yellow)
-                      , (ControlFlowTok, cyan)
-                      , (OperatorTok, cyan)
-                      , (BuiltInTok, cyan)
-                      , (ExtensionTok, magenta)
-                      , (PreprocessorTok, magenta)
-                      , (AttributeTok, yellow)
-                      , (RegionMarkerTok, comment)
-                      , (InformationTok, cyan)
-                      , (WarningTok, yellow)
-                      , (AlertTok, yellow)
-                      , (ErrorTok, red)
-                      , (NormalTok, defaultColorID)
-                      ]
+  return $
+    M.fromList
+      [ (KeywordTok, blue)
+      , (DataTypeTok, green)
+      , (DecValTok, red)
+      , (BaseNTok, red)
+      , (FloatTok, red)
+      , (ConstantTok, magenta)
+      , (CharTok, green)
+      , (SpecialCharTok, red)
+      , (StringTok, green)
+      , (VerbatimStringTok, green)
+      , (SpecialStringTok, green)
+      , (ImportTok, magenta)
+      , (CommentTok, comment)
+      , (DocumentationTok, comment)
+      , (AnnotationTok, comment)
+      , (CommentVarTok, comment)
+      , (OtherTok, defaultColorID)
+      , (FunctionTok, yellow)
+      , (VariableTok, yellow)
+      , (ControlFlowTok, cyan)
+      , (OperatorTok, cyan)
+      , (BuiltInTok, cyan)
+      , (ExtensionTok, magenta)
+      , (PreprocessorTok, magenta)
+      , (AttributeTok, yellow)
+      , (RegionMarkerTok, comment)
+      , (InformationTok, cyan)
+      , (WarningTok, yellow)
+      , (AlertTok, yellow)
+      , (ErrorTok, red)
+      , (NormalTok, defaultColorID)
+      ]
 
 createDisplayState :: Curses DisplayState
 createDisplayState = do
@@ -127,9 +129,8 @@ modeStatus modes =
    in (intercalate " → " modeNames) ++ " mode"
 
 tokenizerConfig :: TokenizerConfig
-tokenizerConfig = TokenizerConfig { syntaxMap = defaultSyntaxMap
-                                  , traceOutput = False
-                                  }
+tokenizerConfig =
+  TokenizerConfig {syntaxMap = defaultSyntaxMap, traceOutput = False}
 
 highlightBuffer :: Buffer -> Maybe Syntax -> [Either T.Text SourceLine]
 highlightBuffer buffer Nothing = map Left $ toList buffer
@@ -145,7 +146,8 @@ draw' displayState state = do
     clear
     moveCursor 0 4
     (rows, columns) <- windowSize
-    drawString $ take ((fromIntegral columns) - 5) $
+    drawString $
+      take ((fromIntegral columns) - 5) $
       statusLine
         [ (case stateFilename state of
              Nothing -> "[No name]"
@@ -161,7 +163,8 @@ draw' displayState state = do
         ]
   (rows, columns) <- updateWindow (bufferWindow displayState) windowSize
   let highlightedBuffer :: [Either T.Text SourceLine]
-      highlightedBuffer = highlightBuffer (stateBuffer state) (stateSyntax state)
+      highlightedBuffer =
+        highlightBuffer (stateBuffer state) (stateSyntax state)
       scrolledBuffer :: [Either T.Text SourceLine]
       scrolledBuffer =
         take (fromIntegral rows) $ drop rowOffset highlightedBuffer
@@ -178,10 +181,12 @@ draw' displayState state = do
     updateWindow (bufferWindow displayState) $ do
       moveCursor (toInteger screenIndex) 0
       case line of
-        Left text -> drawText $ T.take (fromIntegral columns) $ T.drop columnOffset text
-        Right sourceLine -> forM_ sourceLine $
-          \(tokenType, tokenText) -> do
-            setColor $ M.findWithDefault defaultColorID tokenType (style displayState)
+        Left text ->
+          drawText $ T.take (fromIntegral columns) $ T.drop columnOffset text
+        Right sourceLine ->
+          forM_ sourceLine $ \(tokenType, tokenText) -> do
+            setColor $
+              M.findWithDefault defaultColorID tokenType (style displayState)
             drawText tokenText
             setColor defaultColorID
   updateWindow (messageWindow displayState) $ do
