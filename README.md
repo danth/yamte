@@ -14,9 +14,9 @@
 | ctrl-s   |                 | Move the cursor to the end of the file   |
 | ctrl-a   | home            | Move the cursor to the start of the line |
 | ctrl-d   | end             | Move the cursor to the end of the line   |
-| ctrl-o   |                 | Save the file                            |
 | ctrl-q   |                 | Exit without saving                      |
 | e        |                 | Switch to input mode                     |
+| f        |                 | Switch to file mode                      |
 
 ### Input mode
 
@@ -34,3 +34,11 @@ Any keys which aren't in the table below will be added to the file.
 | home      | Move the cursor to the start of the line      |
 | end       | Move the cursor to the end of the line        |
 | ctrl-q    | Switch to action mode                         |
+
+### File mode
+
+| Main Key  | Action                |
+|-----------|-----------------------|
+| s         | Save file             |
+| r         | Reload file           |
+| ctrl-q    | Switch to action mode |

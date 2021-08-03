@@ -4,10 +4,12 @@ module Yamte.Mode.Action
 
 import UI.NCurses (Key(..))
 import Yamte.Cursor
-import Yamte.Editor (Mode, enterMode, leaveMode, saveFile)
+import Yamte.Editor (Mode, enterMode, leaveMode)
 import Yamte.Mode.GenericAction
 import Yamte.Mode.Input (inputMode)
+import Yamte.Mode.File (fileMode)
 
+actions :: [Action]
 actions =
   [ (Action (Left '\^Q') leaveMode)
   , (Action (Left 'a') moveLeft)
@@ -25,7 +27,7 @@ actions =
   , (Action (Left '\^D') moveEnd)
   , (Action (Right KeyEnd) moveEnd)
   , (Action (Left 'e') $ enterMode inputMode)
-  , (IOAction (Left '\^O') saveFile)
+  , (Action (Left 'f') $ enterMode fileMode)
   ]
 
 actionMode :: Mode

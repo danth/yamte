@@ -6,6 +6,7 @@ module Yamte.Editor
   , Cursor
   , State(..)
   , initialState
+  , reloadFile
   , loadFile
   , saveFile
   , activeMode
@@ -54,15 +55,21 @@ initialState =
     , stateCursor = (0, 0)
     }
 
+reloadFile :: State -> IO State
+reloadFile state =
+  case stateFilename state of
+    Nothing -> return state
+    Just filename -> do
+      file <- readFile filename
+      return $
+        state
+          { stateBuffer = S.fromList $ map T.pack $ lines file
+          , stateMessage = "Opened " ++ filename
+          , stateCursor = (0, 0)
+          }
+
 loadFile :: String -> State -> IO State
-loadFile filename state = do
-  file <- readFile filename
-  return $
-    state
-      { stateBuffer = S.fromList $ map T.pack $ lines file
-      , stateFilename = Just filename
-      , stateMessage = "Opened " ++ filename
-      }
+loadFile filename state = reloadFile $ state {stateFilename = Just filename}
 
 saveFile :: State -> IO State
 saveFile state =
