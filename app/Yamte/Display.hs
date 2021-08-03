@@ -78,7 +78,8 @@ draw' displayState state = do
     clear
     moveCursor 0 4
     (rows, columns) <- windowSize
-    drawString $ take ((fromIntegral columns) - 5) $
+    drawString $
+      take ((fromIntegral columns) - 5) $
       statusLine
         [ (case stateFilename state of
              Nothing -> "[No name]"
