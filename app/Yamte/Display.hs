@@ -172,18 +172,18 @@ drawSidebar displayState lines =
 drawToken :: DisplayState -> Token -> Update ()
 drawToken displayState (tokenType, tokenText) =
   let color = M.findWithDefault defaultColorID tokenType $ style displayState
-   in do
-      setColor color
-      drawText tokenText
+   in do setColor color
+         drawText tokenText
 
 drawLine :: DisplayState -> (Int, Int, Either T.Text SourceLine) -> Update ()
 drawLine displayState (screenIndex, lineNumber, line) = do
   moveCursor (toInteger screenIndex) 0
   (rows, columns) <- windowSize
   case line of
-    Left text -> let columnOffset = snd $ view displayState
-                     trimmedLine = T.take (fromIntegral columns) $ T.drop columnOffset text
-                  in drawText trimmedLine
+    Left text ->
+      let columnOffset = snd $ view displayState
+          trimmedLine = T.take (fromIntegral columns) $ T.drop columnOffset text
+       in drawText trimmedLine
     Right tokens -> forM_ tokens $ drawToken displayState
 
 drawBuffer ::
@@ -191,11 +191,12 @@ drawBuffer ::
 drawBuffer displayState lines =
   let updateBuffer :: Update () -> Curses ()
       updateBuffer = updateWindow $ bufferWindow displayState
-      drawLine' :: (Int, Int, Either T.Text SourceLine) -> Curses (Either CursesException ())
+      drawLine' ::
+           (Int, Int, Either T.Text SourceLine)
+        -> Curses (Either CursesException ())
       drawLine' = tryCurses . updateBuffer . drawLine displayState
-   in do
-      updateBuffer clear
-      forM_ lines drawLine'
+   in do updateBuffer clear
+         forM_ lines drawLine'
 
 drawMessage :: DisplayState -> State -> Curses ()
 drawMessage displayState state =
