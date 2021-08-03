@@ -15,7 +15,7 @@ import qualified Data.Text as T
 import Skylighting (Syntax(..))
 import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Tokenizer (TokenizerConfig(..), tokenize)
-import Skylighting.Types (SourceLine, TokenType(..), defaultFormatOpts)
+import Skylighting.Types (SourceLine, Token, TokenType(..), defaultFormatOpts)
 import UI.NCurses
 import Yamte.Editor (Buffer, Cursor, Mode(Mode), State(..), activeMode)
 
@@ -169,27 +169,33 @@ drawSidebar displayState lines =
       moveCursor (toInteger screenIndex) 0
       drawString $ show lineNumber
 
+drawToken :: DisplayState -> Token -> Update ()
+drawToken displayState (tokenType, tokenText) =
+  let color = M.findWithDefault defaultColorID tokenType $ style displayState
+   in do
+      setColor color
+      drawText tokenText
+
+drawLine :: DisplayState -> (Int, Int, Either T.Text SourceLine) -> Update ()
+drawLine displayState (screenIndex, lineNumber, line) = do
+  moveCursor (toInteger screenIndex) 0
+  (rows, columns) <- windowSize
+  case line of
+    Left text -> let columnOffset = snd $ view displayState
+                     trimmedLine = T.take (fromIntegral columns) $ T.drop columnOffset text
+                  in drawText trimmedLine
+    Right tokens -> forM_ tokens $ drawToken displayState
+
 drawBuffer ::
      DisplayState -> [(Int, Int, Either T.Text SourceLine)] -> Curses ()
-drawBuffer displayState lines = do
-  let (rowOffset, columnOffset) = view displayState
-  (rows, columns) <-
-    updateWindow (bufferWindow displayState) $ do
-      clear
-      windowSize
-  forM_ lines $ \(screenIndex, lineNumber, line) ->
-    tryCurses $
-    updateWindow (bufferWindow displayState) $ do
-      moveCursor (toInteger screenIndex) 0
-      case line of
-        Left text ->
-          drawText $ T.take (fromIntegral columns) $ T.drop columnOffset text
-        Right sourceLine ->
-          forM_ sourceLine $ \(tokenType, tokenText) -> do
-            setColor $
-              M.findWithDefault defaultColorID tokenType (style displayState)
-            drawText tokenText
-            setColor defaultColorID
+drawBuffer displayState lines =
+  let updateBuffer :: Update () -> Curses ()
+      updateBuffer = updateWindow $ bufferWindow displayState
+      drawLine' :: (Int, Int, Either T.Text SourceLine) -> Curses (Either CursesException ())
+      drawLine' = tryCurses . updateBuffer . drawLine displayState
+   in do
+      updateBuffer clear
+      forM_ lines drawLine'
 
 drawMessage :: DisplayState -> State -> Curses ()
 drawMessage displayState state =
