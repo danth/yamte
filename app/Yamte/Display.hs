@@ -13,7 +13,6 @@ import qualified Data.Map as M
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 import Skylighting (Syntax(..))
-import Skylighting.Format.ANSI (formatANSI)
 import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Tokenizer (TokenizerConfig(..), tokenize)
 import Skylighting.Types (SourceLine, TokenType(..), defaultFormatOpts)
