@@ -11,29 +11,17 @@
   outputs = { nixpkgs, utils, ... }:
     utils.lib.eachDefaultSystem (system:
       with nixpkgs.lib;
-      with nixpkgs.legacyPackages.${system};
-      let
-        configurePackages = packages:
-          let
-            packageConf = package:
-              "${package}/lib/ghc-${ghc.version}/package.conf.d/*";
-            packageConfs = concatStringsSep " " (map packageConf packages);
-          in ''
-            nixPackages="$PWD/package.conf.d"
-            mkdir -p "$nixPackages"
-            cp ${packageConfs} "$nixPackages/"
-            ${ghc}/bin/ghc-pkg recache -f "$nixPackages"
-            export GHC_PACKAGE_PATH="$nixPackages:"
-            ${ghc}/bin/ghc-pkg list
-          '';
-      in rec {
+      with nixpkgs.legacyPackages.${system}.haskellPackages;
+      rec {
         packages = {
-          yamte = stdenv.mkDerivation {
-            name = "yamte";
-            src = ./app;
-            configurePhase = configurePackages (with haskellPackages; [ ncurses ]);
-            buildPhase = "${ghc}/bin/ghc -O -o yamte Main.hs";
-            installPhase = "install -D yamte $out/bin/yamte";
+          yamte = mkDerivation {
+            pname = "yamte";
+            version = "0.1.0.0";
+            src = ./.;
+            isLibrary = false;
+            isExecutable = true;
+            executableHaskellDepends = [ base ilist ncurses skylighting ];
+            license = "AGPL-3.0";
           };
         };
         defaultPackage = packages.yamte;

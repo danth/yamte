@@ -18,6 +18,9 @@ module Yamte.Editor
 import Data.Foldable (toList)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
+import Skylighting (Syntax, syntaxesByFilename)
+import Skylighting.Syntax (defaultSyntaxMap)
+
 import UI.NCurses (Event(EventCharacter, EventSpecialKey), Key)
 
 type Trigger = Either Char Key
@@ -42,6 +45,7 @@ data State =
     , stateMessage :: String
     , stateModes :: [Mode]
     , stateCursor :: Cursor
+    , stateSyntax :: Maybe Syntax
     }
 
 initialState :: State
@@ -53,6 +57,7 @@ initialState =
     , stateMessage = "Welcome to Yamte!"
     , stateModes = []
     , stateCursor = (0, 0)
+    , stateSyntax = Nothing
     }
 
 reloadFile :: State -> IO State
@@ -69,7 +74,12 @@ reloadFile state =
           }
 
 loadFile :: String -> State -> IO State
-loadFile filename state = reloadFile $ state {stateFilename = Just filename}
+loadFile filename state = reloadFile $ state
+  { stateFilename = Just filename
+  , stateSyntax = case syntaxesByFilename defaultSyntaxMap filename of
+                    [] -> Nothing
+                    syntax:syntaxes -> Just syntax
+  }
 
 saveFile :: State -> IO State
 saveFile state =
