@@ -74,7 +74,10 @@ modifyBuffer f buffer =
 bufferFromString :: String -> Buffer
 bufferFromString string =
   let text = S.fromList $ T.lines $ T.pack string
-      text' = if length text == 0 then S.singleton T.empty else text
+      text' =
+        if length text == 0
+          then S.singleton T.empty
+          else text
    in emptyBuffer {bufferText = text'}
 
 bufferFromFile :: String -> IO Buffer
