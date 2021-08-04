@@ -11,13 +11,14 @@ module Yamte.Cursor
 
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Yamte.Editor (Buffer, Cursor, State(..))
+import Yamte.Buffer (Buffer(bufferText), BufferText)
+import Yamte.Editor (Cursor, State(..))
 
-rowLength :: Buffer -> Int -> Int
+rowLength :: BufferText -> Int -> Int
 rowLength buffer row = T.length $ buffer `S.index` row
 
 rowLength' :: State -> Int -> Int
-rowLength' state = rowLength $ stateBuffer state
+rowLength' state = rowLength $ bufferText $ stateBuffer state
 
 clamp :: Ord a => a -> a -> a -> a
 clamp min max value
@@ -25,14 +26,14 @@ clamp min max value
   | value > max = max
   | otherwise = value
 
-clampCursor :: Buffer -> Cursor -> Cursor
+clampCursor :: BufferText -> Cursor -> Cursor
 clampCursor buffer (row, column) =
   let row' = clamp 0 ((length buffer) - 1) row
       column' = clamp 0 (rowLength buffer row') column
    in (row', column')
 
 clampCursor' :: State -> Cursor -> Cursor
-clampCursor' state = clampCursor $ stateBuffer state
+clampCursor' state = clampCursor $ bufferText $ stateBuffer state
 
 move :: State -> (Cursor -> Cursor) -> State
 move state f =
