@@ -12,14 +12,14 @@ import Data.List.Index (imap)
 import qualified Data.Map as M
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Skylighting (Syntax(..))
-import Skylighting.Syntax (defaultSyntaxMap)
-import Skylighting.Tokenizer (TokenizerConfig(..), tokenize)
-import Skylighting.Types (SourceLine, Token, TokenType(..), defaultFormatOpts)
+import Skylighting.Types (Syntax(sName), SourceLine, Token, TokenType(..))
 import UI.NCurses
-import Yamte.Editor (Buffer, Cursor, Mode(Mode), State(..), activeMode)
+import Yamte.Editor (Cursor, Mode(Mode), State(..), activeMode)
+import Yamte.Buffer (Buffer(..))
 
 type Style = M.Map TokenType (ColorID, [Attribute])
+
+type NumberedLine = (Int, Int, SourceLine)
 
 type View = (Int, Int)
 
@@ -126,45 +126,33 @@ modeStatus modes =
   let modeNames = reverse $ map (\(Mode name _) -> name) modes
    in (intercalate " → " modeNames) ++ " mode"
 
-tokenizerConfig :: TokenizerConfig
-tokenizerConfig =
-  TokenizerConfig {syntaxMap = defaultSyntaxMap, traceOutput = False}
-
-highlightBuffer :: Buffer -> Maybe Syntax -> [Either T.Text SourceLine]
-highlightBuffer buffer Nothing = map Left $ toList buffer
-highlightBuffer buffer (Just syntax) =
-  case tokenize tokenizerConfig syntax (T.unlines $ toList buffer) of
-    (Left error) -> map Left $ toList buffer
-    (Right sourceLines) -> map Right sourceLines
-
 drawStatus :: DisplayState -> State -> Curses ()
 drawStatus displayState state =
-  updateWindow (statusWindow displayState) $ do
+  let buffer = stateBuffer state
+   in updateWindow (statusWindow displayState) $ do
     clear
     moveCursor 0 4
     (rows, columns) <- windowSize
     drawString $
       take ((fromIntegral columns) - 5) $
       statusLine
-        [ (case stateFilename state of
+        [ (case bufferFilename buffer of
              Nothing -> "[No name]"
              Just filename -> filename)
-        , (if stateTouched state
+        , (if bufferTouched buffer
              then "Touched"
              else "Untouched")
-        , (show (length $ stateBuffer state) ++ " lines")
+        , (show (length $ bufferText buffer) ++ " lines")
         , (modeStatus $ stateModes state)
-        , (case stateSyntax state of
-             Nothing -> "No highlighting"
-             Just syntax -> (T.unpack $ sName syntax) ++ " highlighting")
+        , ((T.unpack $ sName $ bufferSyntax buffer) ++ " highlighting")
         ]
 
 drawSidebar ::
-     DisplayState -> [(Int, Int, Either T.Text SourceLine)] -> Curses ()
+     DisplayState -> [NumberedLine] -> Curses ()
 drawSidebar displayState lines =
   updateWindow (sidebarWindow displayState) $ do
     clear
-    forM_ lines $ \(screenIndex, lineNumber, line) -> do
+    forM_ lines $ \(screenIndex, lineNumber, tokens) -> do
       moveCursor (toInteger screenIndex) 0
       drawString $ show lineNumber
 
@@ -176,24 +164,18 @@ drawToken displayState (tokenType, tokenText) =
          setAttributes attributes
          drawText tokenText
 
-drawLine :: DisplayState -> (Int, Int, Either T.Text SourceLine) -> Update ()
-drawLine displayState (screenIndex, lineNumber, line) = do
+drawLine :: DisplayState -> NumberedLine -> Update ()
+drawLine displayState (screenIndex, lineNumber, tokens) = do
   moveCursor (toInteger screenIndex) 0
-  (rows, columns) <- windowSize
-  case line of
-    Left text ->
-      let columnOffset = snd $ view displayState
-          trimmedLine = T.take (fromIntegral columns) $ T.drop columnOffset text
-       in drawText trimmedLine
-    Right tokens -> forM_ tokens $ drawToken displayState
+  forM_ tokens $ drawToken displayState
 
 drawBuffer ::
-     DisplayState -> [(Int, Int, Either T.Text SourceLine)] -> Curses ()
+     DisplayState -> [NumberedLine] -> Curses ()
 drawBuffer displayState lines =
   let updateBuffer :: Update () -> Curses ()
       updateBuffer = updateWindow $ bufferWindow displayState
       drawLine' ::
-           (Int, Int, Either T.Text SourceLine)
+           NumberedLine
         -> Curses (Either CursesException ())
       drawLine' = tryCurses . updateBuffer . drawLine displayState
    in do updateBuffer clear
@@ -219,13 +201,12 @@ draw' :: DisplayState -> State -> Curses ()
 draw' displayState state = do
   (rows, columns) <- updateWindow (bufferWindow displayState) windowSize
   let (rowOffset, columnOffset) = view displayState
-      highlightedBuffer :: [Either T.Text SourceLine]
-      highlightedBuffer =
-        highlightBuffer (stateBuffer state) (stateSyntax state)
-      scrolledBuffer :: [Either T.Text SourceLine]
+      highlightedBuffer :: [SourceLine]
+      highlightedBuffer = bufferHighlighted $ stateBuffer state
+      scrolledBuffer :: [SourceLine]
       scrolledBuffer =
         take (fromIntegral rows) $ drop rowOffset highlightedBuffer
-      lines :: [(Int, Int, Either T.Text SourceLine)]
+      lines :: [NumberedLine]
       lines = imap (\i l -> (i, i + rowOffset + 1, l)) scrolledBuffer
   drawStatus displayState state
   drawSidebar displayState lines

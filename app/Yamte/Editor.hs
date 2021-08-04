@@ -2,12 +2,11 @@ module Yamte.Editor
   ( Trigger
   , ModeResponse(..)
   , Mode(..)
-  , Buffer
   , Cursor
   , State(..)
   , initialState
-  , reloadFile
   , loadFile
+  , reloadFile
   , saveFile
   , activeMode
   , enterMode
@@ -15,13 +14,8 @@ module Yamte.Editor
   , handleEvent
   ) where
 
-import Data.Foldable (toList)
-import qualified Data.Sequence as S
-import qualified Data.Text as T
-import Skylighting (Syntax, syntaxesByFilename)
-import Skylighting.Syntax (defaultSyntaxMap)
-
 import UI.NCurses (Event(EventCharacter, EventSpecialKey), Key)
+import Yamte.Buffer
 
 type Trigger = Either Char Key
 
@@ -33,64 +27,49 @@ data ModeResponse
 data Mode =
   Mode String (Trigger -> State -> IO ModeResponse)
 
-type Buffer = S.Seq T.Text
-
 type Cursor = (Int, Int)
 
 data State =
   State
     { stateBuffer :: Buffer
-    , stateTouched :: Bool
-    , stateFilename :: Maybe String
     , stateMessage :: String
     , stateModes :: [Mode]
     , stateCursor :: Cursor
-    , stateSyntax :: Maybe Syntax
     }
 
 initialState :: State
 initialState =
   State
-    { stateBuffer = S.singleton T.empty
-    , stateTouched = False
-    , stateFilename = Nothing
+    { stateBuffer = emptyBuffer
     , stateMessage = "Welcome to Yamte!"
     , stateModes = []
     , stateCursor = (0, 0)
-    , stateSyntax = Nothing
     }
+
+loadFile :: String -> State -> IO State
+loadFile filename state = do
+  buffer <- bufferFromFile filename
+  return $
+    state
+      { stateBuffer = buffer
+      , stateMessage = "Opened " ++ filename
+      }
 
 reloadFile :: State -> IO State
 reloadFile state =
-  case stateFilename state of
-    Nothing -> return state
-    Just filename -> do
-      file <- readFile filename
-      return $
-        state
-          { stateBuffer = S.fromList $ map T.pack $ lines file
-          , stateMessage = "Opened " ++ filename
-          , stateCursor = (0, 0)
-          }
-
-loadFile :: String -> State -> IO State
-loadFile filename state =
-  reloadFile $
-  state
-    { stateFilename = Just filename
-    , stateSyntax =
-        case syntaxesByFilename defaultSyntaxMap filename of
-          [] -> Nothing
-          syntax:syntaxes -> Just syntax
-    }
+  case bufferFilename $ stateBuffer state of
+    Nothing -> return state { stateMessage = "No file name specified" }
+    Just filename -> loadFile filename state
 
 saveFile :: State -> IO State
 saveFile state =
-  case stateFilename state of
-    Nothing -> return state
-    Just filename -> do
-      writeFile filename $ T.unpack $ T.unlines $ toList $ stateBuffer state
-      return state {stateMessage = "Saved " ++ filename, stateTouched = False}
+  case bufferFilename $ stateBuffer state of
+    Nothing -> return state { stateMessage = "No file name specified" }
+    Just filename ->
+      do buffer' <- bufferToFile $ stateBuffer state
+         return state { stateBuffer = buffer'
+                      , stateMessage = "Saved " ++ filename
+                      }
 
 activeMode :: State -> Maybe Mode
 activeMode state =
