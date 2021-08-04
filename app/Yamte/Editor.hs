@@ -49,27 +49,21 @@ initialState =
 loadFile :: String -> State -> IO State
 loadFile filename state = do
   buffer <- bufferFromFile filename
-  return $
-    state
-      { stateBuffer = buffer
-      , stateMessage = "Opened " ++ filename
-      }
+  return $ state {stateBuffer = buffer, stateMessage = "Opened " ++ filename}
 
 reloadFile :: State -> IO State
 reloadFile state =
   case bufferFilename $ stateBuffer state of
-    Nothing -> return state { stateMessage = "No file name specified" }
+    Nothing -> return state {stateMessage = "No file name specified"}
     Just filename -> loadFile filename state
 
 saveFile :: State -> IO State
 saveFile state =
   case bufferFilename $ stateBuffer state of
-    Nothing -> return state { stateMessage = "No file name specified" }
-    Just filename ->
-      do buffer' <- bufferToFile $ stateBuffer state
-         return state { stateBuffer = buffer'
-                      , stateMessage = "Saved " ++ filename
-                      }
+    Nothing -> return state {stateMessage = "No file name specified"}
+    Just filename -> do
+      buffer' <- bufferToFile $ stateBuffer state
+      return state {stateBuffer = buffer', stateMessage = "Saved " ++ filename}
 
 activeMode :: State -> Maybe Mode
 activeMode state =

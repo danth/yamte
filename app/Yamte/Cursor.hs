@@ -11,8 +11,8 @@ module Yamte.Cursor
 
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Yamte.Editor (Cursor, State(..))
 import Yamte.Buffer (Buffer(bufferText), BufferText)
+import Yamte.Editor (Cursor, State(..))
 
 rowLength :: BufferText -> Int -> Int
 rowLength buffer row = T.length $ buffer `S.index` row

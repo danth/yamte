@@ -6,9 +6,9 @@ import Data.Char (isPrint)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 import UI.NCurses (Key(..))
+import Yamte.Buffer (Buffer(..), BufferText, modifyBuffer)
 import Yamte.Cursor (moveDown, moveHome, moveLeft, moveRight)
 import Yamte.Editor
-import Yamte.Buffer (Buffer(..), BufferText, modifyBuffer)
 
 modifyState :: (BufferText -> BufferText) -> State -> State
 modifyState f state = state {stateBuffer = modifyBuffer f $ stateBuffer state}
@@ -49,7 +49,8 @@ insertNewline' (row, column) buffer =
 
 insertNewline :: State -> State
 insertNewline state =
-  (moveHome .  moveDown . (modifyState $ insertNewline' $ stateCursor state)) state
+  (moveHome . moveDown . (modifyState $ insertNewline' $ stateCursor state))
+    state
 
 insertCharacter' :: Char -> Cursor -> BufferText -> BufferText
 insertCharacter' character (row, column) buffer =
@@ -60,7 +61,8 @@ insertCharacter' character (row, column) buffer =
 
 insertCharacter :: Char -> State -> State
 insertCharacter character state =
-  (moveRight . (modifyState $ insertCharacter' character $ stateCursor state)) state
+  (moveRight . (modifyState $ insertCharacter' character $ stateCursor state))
+    state
 
 handleTrigger :: Trigger -> State -> ModeResponse
 handleTrigger (Right KeyBackspace) = NewState . backspace
