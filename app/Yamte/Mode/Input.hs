@@ -13,13 +13,14 @@ import Yamte.Editor
 modifyState :: (BufferText -> BufferText) -> State -> State
 modifyState f state = state {stateBuffer = modifyBuffer f $ stateBuffer state}
 
-modifyStateCursor :: (Cursor -> BufferText -> (BufferText, Cursor)) -> State -> State
+modifyStateCursor ::
+     (Cursor -> BufferText -> (BufferText, Cursor)) -> State -> State
 modifyStateCursor f state =
   let f' = f $ stateCursor state
    in state
-     { stateBuffer = modifyBuffer (fst . f') $ stateBuffer state
-     , stateCursor = snd $ f' $ bufferText $ stateBuffer state
-     }
+        { stateBuffer = modifyBuffer (fst . f') $ stateBuffer state
+        , stateCursor = snd $ f' $ bufferText $ stateBuffer state
+        }
 
 deleteColumn :: Int -> T.Text -> T.Text
 deleteColumn column line =
@@ -56,8 +57,7 @@ insertNewline' (row, column) buffer =
       indentation = T.takeWhile ((==) ' ') front
       newLine = indentation `T.append` back
    in ( S.insertAt (row + 1) newLine $ S.update row front buffer
-      , (row + 1, T.length indentation)
-      )
+      , (row + 1, T.length indentation))
 
 insertNewline :: State -> State
 insertNewline = modifyStateCursor insertNewline'
