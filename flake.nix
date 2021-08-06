@@ -9,7 +9,8 @@
   };
 
   outputs = { nixpkgs, utils, ... }:
-    utils.lib.eachDefaultSystem (system:
+    utils.lib.eachSystem ["x86_64-linux" "i686-linux" "aarch64-linux"]
+    (system:
       with nixpkgs.lib;
       with nixpkgs.legacyPackages.${system}.haskellPackages;
       rec {
@@ -28,7 +29,5 @@
 
         apps.yamte = utils.lib.mkApp { drv = packages.yamte; };
         defaultApp = apps.yamte;
-
-        checks = packages;
       });
 }
