@@ -100,6 +100,22 @@ createDisplayState = do
       , view = (0, 0)
       }
 
+positionWindows :: DisplayState -> Curses ()
+positionWindows displayState = do
+  (rows, columns) <- screenSize
+  updateWindow (statusWindow displayState) $ do
+    moveWindow 0 0
+    resizeWindow 1 columns
+  updateWindow (sidebarWindow displayState) $ do
+    moveWindow 1 0
+    resizeWindow (rows - 2) 4
+  updateWindow (bufferWindow displayState) $ do
+    moveWindow 1 4
+    resizeWindow (rows - 2) (columns - 4)
+  updateWindow (messageWindow displayState) $ do
+    moveWindow (rows - 1) 0
+    resizeWindow 1 columns
+
 scrollAxis :: Int -> Int -> Int -> Int
 scrollAxis cursorPosition scrollOffset displaySize
   | cursorPosition < scrollOffset = cursorPosition
@@ -195,6 +211,7 @@ positionCursor displayState (row, column) =
 
 draw' :: DisplayState -> State -> Curses ()
 draw' displayState state = do
+  positionWindows displayState
   (rows, columns) <- updateWindow (bufferWindow displayState) windowSize
   let (rowOffset, columnOffset) = view displayState
       highlightedBuffer :: [SourceLine]
