@@ -64,11 +64,16 @@ insertCharacter character state =
   (moveRight . (modifyState $ insertCharacter' character $ stateCursor state))
     state
 
+repeatCall :: Int -> (a -> a) -> (a -> a)
+repeatCall 1 function = function
+repeatCall count function = function . repeatCall (count - 1) function
+
 handleTrigger :: Trigger -> State -> ModeResponse
 handleTrigger (Right KeyBackspace) = NewState . backspace
 handleTrigger (Left '\127') = NewState . backspace
 handleTrigger (Right KeyDeleteCharacter) = NewState . backspace . moveRight
 handleTrigger (Left '\n') = NewState . insertNewline
+handleTrigger (Left '\t') = NewState . repeatCall 4 (insertCharacter ' ')
 handleTrigger (Right _) = const Propagate
 handleTrigger (Left '\^Q') = const Propagate
 handleTrigger (Left character)
