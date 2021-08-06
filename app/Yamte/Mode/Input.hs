@@ -66,6 +66,7 @@ insertCharacter character state =
 
 handleTrigger :: Trigger -> State -> ModeResponse
 handleTrigger (Right KeyBackspace) = NewState . backspace
+handleTrigger (Left '\127') = NewState . backspace
 handleTrigger (Right KeyDeleteCharacter) = NewState . backspace . moveRight
 handleTrigger (Left '\n') = NewState . insertNewline
 handleTrigger (Right _) = const Propagate
