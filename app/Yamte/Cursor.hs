@@ -7,6 +7,8 @@ module Yamte.Cursor
   , moveBottom
   , moveHome
   , moveEnd
+  , moveRow
+  , moveColumn
   ) where
 
 import qualified Data.Sequence as S
@@ -73,3 +75,9 @@ moveHome state = move state $ \(row, column) -> (row, 0)
 
 moveEnd :: State -> State
 moveEnd state = move state $ \(row, column) -> (row, maxBound)
+
+moveRow :: Int -> State -> State
+moveRow row' state = move state $ \(row, column) -> (row', column)
+
+moveColumn :: Int -> State -> State
+moveColumn column' state = move state $ \(row, column) -> (row, column')
