@@ -14,6 +14,8 @@ module Yamte.Editor
   , handleEvent
   ) where
 
+import Control.Exception (Exception, try)
+import System.IO.Error (isDoesNotExistError)
 import UI.NCurses (Event(EventCharacter, EventSpecialKey), Key)
 import Yamte.Buffer
 
@@ -46,10 +48,22 @@ initialState =
     , stateCursor = (0, 0)
     }
 
-loadFile :: String -> State -> IO State
-loadFile filename state = do
+loadFile' :: String -> State -> IO State
+loadFile' filename state = do
   buffer <- bufferFromFile filename
   return $ state {stateBuffer = buffer, stateMessage = "Opened " ++ filename}
+
+handleError :: IOError -> State -> State
+handleError exception state
+  | isDoesNotExistError exception = state {stateMessage = "File does not exist."}
+  | otherwise = state {stateMessage = "Unknown error when loading file."}
+
+loadFile :: String -> State -> IO State
+loadFile filename state = do
+  stateOrException <- try $ loadFile' filename state
+  case stateOrException of
+    Left exception -> return $ handleError exception state
+    Right state' -> return state'
 
 reloadFile :: State -> IO State
 reloadFile state =
