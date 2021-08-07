@@ -55,7 +55,8 @@ loadFile' filename state = do
 
 handleError :: IOError -> State -> State
 handleError exception state
-  | isDoesNotExistError exception = state {stateMessage = "File does not exist."}
+  | isDoesNotExistError exception =
+    state {stateMessage = "File does not exist."}
   | otherwise = state {stateMessage = "Unknown error when loading file."}
 
 loadFile :: String -> State -> IO State
