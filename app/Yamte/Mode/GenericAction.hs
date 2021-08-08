@@ -4,8 +4,8 @@ module Yamte.Mode.GenericAction
   ) where
 
 import Data.List (find, intercalate)
-import Yamte.Editor (Mode(Mode), ModeResponse(..), State(..), Trigger)
 import UI.NCurses (Key(..))
+import Yamte.Editor (Mode(Mode), ModeResponse(..), State(..), Trigger)
 
 data Action
   = Action Trigger (State -> State)
@@ -51,5 +51,5 @@ makeHintAction actions = Action (Left '?') $ showHints actions
 
 makeActionMode :: String -> [Action] -> Mode
 makeActionMode name actions =
-  let actions' = (makeHintAction actions):actions
+  let actions' = (makeHintAction actions) : actions
    in Mode name $ handleTrigger actions'
