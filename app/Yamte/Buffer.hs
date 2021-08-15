@@ -14,6 +14,7 @@ import Skylighting (syntaxByName, syntaxesByFilename)
 import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Tokenizer (TokenizerConfig(..), tokenize)
 import Skylighting.Types (SourceLine, Syntax)
+import System.IO (readFile')
 
 type BufferText = S.Seq T.Text
 
@@ -82,7 +83,7 @@ bufferFromString string =
 
 bufferFromFile :: String -> IO Buffer
 bufferFromFile filename = do
-  content <- readFile filename
+  content <- readFile' filename
   let buffer = bufferFromString content
       buffer' = buffer {bufferFilename = Just filename}
   return $ highlight $ setSyntax buffer'
