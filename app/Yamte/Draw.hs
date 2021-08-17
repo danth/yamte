@@ -4,12 +4,14 @@ module Yamte.Draw
 
 import Brick.Types (Location(..), Padding(Max), ViewportType(Both), Widget)
 import qualified Brick.Widgets.Core as W
-import Brick.Widgets.Core ((<+>))
+import Brick.Widgets.Core ((<=>))
+import qualified Brick.Widgets.Border as B
+import Brick.BorderMap (Edges(..))
 import Data.List (intercalate)
 import Data.List.Index (imap)
 import qualified Data.Text as T
 import Skylighting.Types (SourceLine, Syntax(sName), Token)
-import Yamte.Attributes (findAttribute, frameAttribute)
+import Yamte.Attributes (findAttribute)
 import Yamte.Types (Buffer(..), Mode(..), Resource(..), State(..), Widget')
 
 modeStatus :: [Mode] -> String
@@ -19,8 +21,7 @@ modeStatus modes =
 
 drawStatus :: State -> Widget'
 drawStatus state =
-  W.withAttr frameAttribute $
-  W.padRight Max $ W.str $ intercalate " • " $ elements
+  W.padLeftRight 1 $ W.str $ intercalate " • " elements
   where
     buffer = stateBuffer state
     elements =
@@ -39,12 +40,13 @@ drawBuffer :: State -> Widget'
 drawBuffer state = W.vBox $ imap drawLine lines
   where
     (cursorLine, cursorColumn) = stateCursor state
+    singleVerticalBorder :: Widget'
+    singleVerticalBorder = B.joinableBorder $ Edges True True False False
     drawLine :: Int -> SourceLine -> Widget'
-    drawLine lineNumber tokens = sidebar <+> line
+    drawLine lineNumber tokens = W.hBox [sidebar, singleVerticalBorder, line]
       where
-        sidebar =
-          W.withAttr frameAttribute $
-          W.hLimit 4 $ W.padRight Max $ W.str (show $ lineNumber + 1)
+        sidebar :: Widget'
+        sidebar = W.hLimit 4 $ W.padRight Max $ W.str (show $ lineNumber + 1)
         setCursor :: Widget' -> Widget'
         setCursor =
           if lineNumber == cursorLine
@@ -58,17 +60,18 @@ drawBuffer state = W.vBox $ imap drawLine lines
         drawToken :: Token -> Widget'
         drawToken (tokenType, tokenText) =
           W.withAttr (findAttribute tokenType) $ W.txt tokenText
+        line :: Widget'
         line = setCursor $ makeVisible $ W.hBox $ map drawToken tokens
     lines :: [SourceLine]
     lines = bufferHighlighted $ stateBuffer state
 
 drawViewport :: State -> Widget'
-drawViewport state = W.viewport FileViewport Both $ drawBuffer state
+drawViewport state = B.borderWithLabel (drawStatus state) $ W.viewport FileViewport Both $ drawBuffer state
 
 drawMessage :: State -> Widget'
-drawMessage = W.withAttr frameAttribute . W.padRight Max . W.str . stateMessage
+drawMessage = W.str . stateMessage
 
 draw :: State -> [Widget']
 draw state = [ui]
   where
-    ui = W.vBox [drawStatus state, drawViewport state, drawMessage state]
+    ui = drawViewport state <=> drawMessage state

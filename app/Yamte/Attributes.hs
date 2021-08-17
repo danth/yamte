@@ -2,19 +2,15 @@
 
 module Yamte.Attributes
   ( attributes
-  , frameAttribute
   , findAttribute
   ) where
 
 import Brick.AttrMap (AttrMap, AttrName, attrMap, attrName)
-import Brick.Util (fg, on)
+import Brick.Util (fg)
 import qualified Data.Map as M
 import Graphics.Vty.Attributes (bold, defAttr, withStyle)
 import Graphics.Vty.Attributes.Color
 import Skylighting.Types (TokenType(..))
-
-frameAttribute :: AttrName
-frameAttribute = "frame"
 
 textAttribute :: AttrName
 textAttribute = "text"
@@ -56,8 +52,7 @@ attributes :: AttrMap
 attributes =
   attrMap
     defAttr
-    [ (frameAttribute, black `on` white)
-    , (textAttribute, fg white)
+    [ (textAttribute, fg white)
     , (keywordAttribute, fg blue)
     , (builtinAttribute, fg cyan)
     , (stringAttribute, fg green)
