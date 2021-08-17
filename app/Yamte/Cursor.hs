@@ -13,6 +13,7 @@ module Yamte.Cursor
 
 import qualified Data.Sequence as S
 import qualified Data.Text as T
+import Brick.Util (clamp)
 import Yamte.Types (Buffer(bufferText), BufferText, Cursor, State(..))
 
 rowLength :: BufferText -> Int -> Int
@@ -20,12 +21,6 @@ rowLength buffer row = T.length $ buffer `S.index` row
 
 rowLength' :: State -> Int -> Int
 rowLength' state = rowLength $ bufferText $ stateBuffer state
-
-clamp :: Ord a => a -> a -> a -> a
-clamp min max value
-  | value < min = min
-  | value > max = max
-  | otherwise = value
 
 clampCursor :: BufferText -> Cursor -> Cursor
 clampCursor buffer (row, column) =
