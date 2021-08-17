@@ -13,7 +13,7 @@ module Yamte.Cursor
 
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Yamte.Types (Cursor, State(..), Buffer(bufferText), BufferText)
+import Yamte.Types (Buffer(bufferText), BufferText, Cursor, State(..))
 
 rowLength :: BufferText -> Int -> Int
 rowLength buffer row = T.length $ buffer `S.index` row

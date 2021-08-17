@@ -5,11 +5,19 @@ module Yamte.Mode.Input
 import Data.Char (isPrint)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Graphics.Vty (Key(KBS, KDel, KChar, KEnter), Modifier(MCtrl))
-import Yamte.Types (Cursor, State(..), Mode(..), ModifiedKey, ModeResponse(..), Buffer(..), BufferText)
+import Graphics.Vty (Key(KBS, KChar, KDel, KEnter), Modifier(MCtrl))
 import Yamte.Buffer (modifyBuffer)
 import Yamte.Cursor (moveDown, moveHome, moveLeft, moveRight)
 import Yamte.Editor
+import Yamte.Types
+  ( Buffer(..)
+  , BufferText
+  , Cursor
+  , Mode(..)
+  , ModeResponse(..)
+  , ModifiedKey
+  , State(..)
+  )
 
 modifyState :: (BufferText -> BufferText) -> State -> State
 modifyState f state = state {stateBuffer = modifyBuffer f $ stateBuffer state}

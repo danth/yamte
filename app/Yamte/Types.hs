@@ -32,6 +32,7 @@ instance Default Syntax where
 type Cursor = (Int, Int)
 
 type BufferText = S.Seq T.Text
+
 data Buffer =
   Buffer
     { bufferText :: BufferText
@@ -40,14 +41,16 @@ data Buffer =
     , bufferTouched :: Bool
     , bufferFilename :: Maybe String
     }
+
 instance Default Buffer where
-  def = Buffer
-    { bufferText = S.singleton T.empty
-    , bufferHighlighted = [[]]
-    , bufferSyntax = def
-    , bufferTouched = False
-    , bufferFilename = Nothing
-    }
+  def =
+    Buffer
+      { bufferText = S.singleton T.empty
+      , bufferHighlighted = [[]]
+      , bufferSyntax = def
+      , bufferTouched = False
+      , bufferFilename = Nothing
+      }
 
 type ModifiedKey = (Key, [Modifier])
 
@@ -70,18 +73,25 @@ data State =
     , stateModes :: [Mode]
     , stateCursor :: Cursor
     }
+
 instance Default State where
-  def = State
-    { stateBuffer = def
-    , stateMessage = "Welcome to Yamte!"
-    , stateModes = []
-    , stateCursor = (0, 0)
-    }
+  def =
+    State
+      { stateBuffer = def
+      , stateMessage = "Welcome to Yamte!"
+      , stateModes = []
+      , stateCursor = (0, 0)
+      }
 
 type Event = ()
+
 type Event' = BrickEvent Resource Event
 
-data Resource = FileCursor | FileViewport deriving (Show, Eq, Ord)
+data Resource
+  = FileCursor
+  | FileViewport
+  deriving (Show, Eq, Ord)
+
 type Widget' = Widget Resource
 
 type EventM' = EventM Resource (Next State)

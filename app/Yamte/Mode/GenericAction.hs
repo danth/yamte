@@ -3,8 +3,14 @@ module Yamte.Mode.GenericAction
   ) where
 
 import Data.List (find, intercalate)
-import Graphics.Vty (Key(KUp, KDown, KLeft, KRight, KChar, KFun), Modifier(..))
-import Yamte.Types (Action(..), Mode(..), ModeResponse(..), State(..), ModifiedKey)
+import Graphics.Vty (Key(KChar, KDown, KFun, KLeft, KRight, KUp), Modifier(..))
+import Yamte.Types
+  ( Action(..)
+  , Mode(..)
+  , ModeResponse(..)
+  , ModifiedKey
+  , State(..)
+  )
 
 showKey :: Key -> String
 showKey KUp = "↑"

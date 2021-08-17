@@ -2,13 +2,16 @@ module Yamte.Mode.Action
   ( actionMode
   ) where
 
-import Graphics.Vty (Key(KLeft, KRight, KUp, KDown, KHome, KEnd, KChar), Modifier(MCtrl))
+import Graphics.Vty
+  ( Key(KChar, KDown, KEnd, KHome, KLeft, KRight, KUp)
+  , Modifier(MCtrl)
+  )
 import Yamte.Cursor
 import Yamte.Editor (enterMode, leaveMode)
 import Yamte.Mode.File (fileMode)
 import Yamte.Mode.GenericAction (makeActionMode)
 import Yamte.Mode.Input (inputMode)
-import Yamte.Types (Mode, Action(..))
+import Yamte.Types (Action(..), Mode)
 
 actions :: [Action]
 actions =

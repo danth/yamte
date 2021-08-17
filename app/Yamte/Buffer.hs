@@ -13,7 +13,7 @@ import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Tokenizer (TokenizerConfig(..), tokenize)
 import Skylighting.Types (SourceLine, Syntax)
 import System.IO (readFile')
-import Yamte.Types (BufferText, Buffer(..))
+import Yamte.Types (Buffer(..), BufferText)
 
 setSyntax :: Buffer -> Buffer
 setSyntax buffer =

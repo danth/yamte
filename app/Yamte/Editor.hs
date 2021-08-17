@@ -8,14 +8,22 @@ module Yamte.Editor
   , handleEvent
   ) where
 
-import Brick.Main (halt, continue)
-import Brick.Types (EventM, BrickEvent(VtyEvent))
-import Control.Monad.IO.Class (liftIO)
+import Brick.Main (continue, halt)
+import Brick.Types (BrickEvent(VtyEvent), EventM)
 import Control.Exception (Exception, try)
+import Control.Monad.IO.Class (liftIO)
 import Graphics.Vty (Event(EvKey))
 import System.IO.Error (isDoesNotExistError)
 import Yamte.Buffer
-import Yamte.Types (Buffer(..), Event', EventM', Mode(..), ModeResponse(..), State(..), ModifiedKey)
+import Yamte.Types
+  ( Buffer(..)
+  , Event'
+  , EventM'
+  , Mode(..)
+  , ModeResponse(..)
+  , ModifiedKey
+  , State(..)
+  )
 
 loadFile' :: String -> State -> IO State
 loadFile' filename state = do
