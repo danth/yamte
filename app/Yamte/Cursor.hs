@@ -11,9 +11,9 @@ module Yamte.Cursor
   , moveColumn
   ) where
 
+import Brick.Util (clamp)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Brick.Util (clamp)
 import Yamte.Types (Buffer(bufferText), BufferText, Cursor, State(..))
 
 rowLength :: BufferText -> Int -> Int
