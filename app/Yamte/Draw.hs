@@ -2,11 +2,11 @@ module Yamte.Draw
   ( draw
   ) where
 
+import Brick.BorderMap (Edges(..))
 import Brick.Types (Location(..), Padding(Max), ViewportType(Both), Widget)
+import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Core as W
 import Brick.Widgets.Core ((<=>))
-import qualified Brick.Widgets.Border as B
-import Brick.BorderMap (Edges(..))
 import Data.List (intercalate)
 import Data.List.Index (imap)
 import qualified Data.Text as T
@@ -20,8 +20,7 @@ modeStatus modes =
    in (intercalate " → " modeNames) ++ " mode"
 
 drawStatus :: State -> Widget'
-drawStatus state =
-  W.padLeftRight 1 $ W.str $ intercalate " • " elements
+drawStatus state = W.padLeftRight 1 $ W.str $ intercalate " • " elements
   where
     buffer = stateBuffer state
     elements =
@@ -66,7 +65,9 @@ drawBuffer state = W.vBox $ imap drawLine lines
     lines = bufferHighlighted $ stateBuffer state
 
 drawViewport :: State -> Widget'
-drawViewport state = B.borderWithLabel (drawStatus state) $ W.viewport FileViewport Both $ drawBuffer state
+drawViewport state =
+  B.borderWithLabel (drawStatus state) $
+  W.viewport FileViewport Both $ drawBuffer state
 
 drawMessage :: State -> Widget'
 drawMessage = W.str . stateMessage
