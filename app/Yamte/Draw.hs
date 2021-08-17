@@ -7,7 +7,7 @@ import Brick.Types (Location(..), Padding(Max), ViewportType(Both), Widget)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Core as W
 import Brick.Widgets.Core ((<=>))
-import Data.List (intercalate)
+import Data.List (intersperse, intercalate)
 import Data.List.Index (imap)
 import qualified Data.Text as T
 import Skylighting.Types (SourceLine, Syntax(sName), Token)
@@ -20,9 +20,10 @@ modeStatus modes =
    in (intercalate " → " modeNames) ++ " mode"
 
 drawStatus :: State -> Widget'
-drawStatus state = W.padLeftRight 1 $ W.str $ intercalate " • " elements
+drawStatus state = W.hBox $ intersperse separator widgets
   where
     buffer = stateBuffer state
+    elements :: [String]
     elements =
       [ (case bufferFilename buffer of
            Nothing -> "[No name]"
@@ -34,6 +35,10 @@ drawStatus state = W.padLeftRight 1 $ W.str $ intercalate " • " elements
       , (modeStatus $ stateModes state)
       , ((T.unpack $ sName $ bufferSyntax buffer) ++ " highlighting")
       ]
+    widgets :: [Widget']
+    widgets = map (W.padLeftRight 1 . W.str) elements
+    separator :: Widget'
+    separator = W.hLimit 2 $ B.hBorder
 
 drawBuffer :: State -> Widget'
 drawBuffer state = W.vBox $ imap drawLine lines
