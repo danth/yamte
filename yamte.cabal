@@ -13,10 +13,12 @@ executable yamte
   build-depends: base ^>= 4.15,
                  containers,
                  text,
+                 brick ^>= 0.62,
+                 data-default-class ^>= 0.1.2.0,
                  ilist ^>= 0.4.0.0,
-                 ncurses ^>= 0.2.16,
-                 skylighting ^>= 0.11
+                 skylighting ^>= 0.11,
+                 vty ^>= 5.33
   hs-source-dirs: app
   main-is: Main.hs
   default-language: Haskell2010
-  ghc-options: -O
+  ghc-options: -O -threaded

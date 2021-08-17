@@ -1,12 +1,10 @@
 module Yamte.Buffer
-  ( Buffer(..)
-  , BufferText
-  , emptyBuffer
-  , bufferFromFile
+  ( bufferFromFile
   , bufferToFile
   , modifyBuffer
   ) where
 
+import Data.Default.Class (Default(..))
 import Data.Foldable (toList)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
@@ -15,38 +13,12 @@ import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Tokenizer (TokenizerConfig(..), tokenize)
 import Skylighting.Types (SourceLine, Syntax)
 import System.IO (readFile')
-
-type BufferText = S.Seq T.Text
-
-data Buffer =
-  Buffer
-    { bufferText :: BufferText
-    , bufferHighlighted :: [SourceLine]
-    , bufferSyntax :: Syntax
-    , bufferTouched :: Bool
-    , bufferFilename :: Maybe String
-    }
-
-emptyBuffer :: Buffer
-emptyBuffer =
-  Buffer
-    { bufferText = S.singleton T.empty
-    , bufferHighlighted = [[]]
-    , bufferSyntax = defaultSyntax
-    , bufferTouched = False
-    , bufferFilename = Nothing
-    }
-
-defaultSyntax :: Syntax
-defaultSyntax =
-  case syntaxByName defaultSyntaxMap (T.pack "Default") of
-    Nothing -> error "Default syntax does not exist"
-    Just syntax -> syntax
+import Yamte.Types (BufferText, Buffer(..))
 
 setSyntax :: Buffer -> Buffer
 setSyntax buffer =
   case bufferFilename buffer of
-    Nothing -> buffer {bufferSyntax = defaultSyntax}
+    Nothing -> buffer {bufferSyntax = def}
     Just filename ->
       let syntax = head $ syntaxesByFilename defaultSyntaxMap filename
        in buffer {bufferSyntax = syntax}
@@ -79,7 +51,7 @@ bufferFromString string =
         if length text == 0
           then S.singleton T.empty
           else text
-   in emptyBuffer {bufferText = text'}
+   in def {bufferText = text'}
 
 bufferFromFile :: String -> IO Buffer
 bufferFromFile filename = do

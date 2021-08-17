@@ -1,40 +1,35 @@
 module Main where
 
-import Control.Monad.IO.Class (liftIO)
+import Data.Default.Class (Default(def))
+import Brick.Main (App(..), showFirstCursor, defaultMain)
 import System.Environment (getArgs)
-import UI.NCurses (Curses, runCurses, setEcho)
-import Yamte.Display (DisplayState, createDisplayState, draw, getEvent)
+import Yamte.Types (State, Event, Resource)
+import Yamte.Attributes (attributes)
 import Yamte.Editor
-  ( State
-  , activeMode
-  , enterMode
+  ( enterMode
   , handleEvent
-  , initialState
   , loadFile
   )
+import Yamte.Draw (draw)
 import Yamte.Mode.Action (actionMode)
 
-eventLoop :: DisplayState -> State -> Curses ()
-eventLoop displayState state = do
-  displayState' <- draw displayState state
-  event <- getEvent displayState
-  case event of
-    Nothing -> eventLoop displayState' state
-    Just e -> do
-      state' <- liftIO $ handleEvent e state
-      case activeMode state' of
-        Nothing -> return ()
-        Just _ -> eventLoop displayState' state'
+app :: App State Event Resource
+app = App { appDraw = draw
+          , appChooseCursor = showFirstCursor
+          , appHandleEvent = handleEvent
+          , appStartEvent = return
+          , appAttrMap = const attributes
+          }
+
+initialState :: State
+initialState = enterMode actionMode def
 
 main :: IO ()
-main =
-  runCurses $ do
-    setEcho False
-    displayState <- createDisplayState
-    arguments <- liftIO getArgs
-    state <-
-      if length arguments > 0
-        then liftIO $ loadFile (arguments !! 0) initialState
-        else return initialState
-    let state' = enterMode actionMode state
-    eventLoop displayState state'
+main = do
+  arguments <- getArgs
+  state <-
+    if length arguments > 0
+      then loadFile (arguments !! 0) initialState
+      else return initialState
+  defaultMain app state
+  return ()

@@ -1,11 +1,5 @@
 module Yamte.Editor
-  ( Trigger
-  , ModeResponse(..)
-  , Mode(..)
-  , Cursor
-  , State(..)
-  , initialState
-  , loadFile
+  ( loadFile
   , reloadFile
   , saveFile
   , activeMode
@@ -14,39 +8,14 @@ module Yamte.Editor
   , handleEvent
   ) where
 
+import Brick.Main (halt, continue)
+import Brick.Types (EventM, BrickEvent(VtyEvent))
+import Control.Monad.IO.Class (liftIO)
 import Control.Exception (Exception, try)
+import Graphics.Vty (Event(EvKey))
 import System.IO.Error (isDoesNotExistError)
-import UI.NCurses (Event(EventCharacter, EventSpecialKey), Key)
 import Yamte.Buffer
-
-type Trigger = Either Char Key
-
-data ModeResponse
-  = NewState State
-  | Propagate
-  | DoNothing
-
-data Mode =
-  Mode String (Trigger -> State -> IO ModeResponse)
-
-type Cursor = (Int, Int)
-
-data State =
-  State
-    { stateBuffer :: Buffer
-    , stateMessage :: String
-    , stateModes :: [Mode]
-    , stateCursor :: Cursor
-    }
-
-initialState :: State
-initialState =
-  State
-    { stateBuffer = emptyBuffer
-    , stateMessage = "Welcome to Yamte!"
-    , stateModes = []
-    , stateCursor = (0, 0)
-    }
+import Yamte.Types (Buffer(..), Event', EventM', Mode(..), ModeResponse(..), State(..), ModifiedKey)
 
 loadFile' :: String -> State -> IO State
 loadFile' filename state = do
@@ -92,23 +61,20 @@ enterMode mode state = state {stateModes = mode : (stateModes state)}
 leaveMode :: State -> State
 leaveMode state = state {stateModes = tail $ stateModes state}
 
-getTrigger :: Event -> Maybe Trigger
-getTrigger (EventCharacter character) = Just $ Left character
-getTrigger (EventSpecialKey key) = Just $ Right key
-getTrigger _ = Nothing
-
-handleTrigger :: Trigger -> State -> [Mode] -> IO State
-handleTrigger trigger state [] = return state
-handleTrigger trigger state (mode:modes) = do
+handleKey :: State -> [Mode] -> ModifiedKey -> IO State
+handleKey state [] key = return state
+handleKey state (mode:modes) key = do
   let (Mode _ f) = mode
-  response <- f trigger state
+  response <- f key state
   case response of
     NewState state' -> return state'
-    Propagate -> handleTrigger trigger state modes
+    Propagate -> handleKey state modes key
     DoNothing -> return state
 
-handleEvent :: Event -> State -> IO State
-handleEvent event state =
-  case getTrigger event of
-    Nothing -> return state
-    Just trigger -> handleTrigger trigger state (stateModes state)
+handleEvent :: State -> Event' -> EventM'
+handleEvent state (VtyEvent (EvKey key modifiers)) = do
+  state' <- liftIO $ handleKey state (stateModes state) (key, modifiers)
+  case stateModes state' of
+    [] -> halt state'
+    _ -> continue state'
+handleEvent state _ = continue state

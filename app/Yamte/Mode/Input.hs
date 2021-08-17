@@ -5,8 +5,9 @@ module Yamte.Mode.Input
 import Data.Char (isPrint)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import UI.NCurses (Key(..))
-import Yamte.Buffer (Buffer(..), BufferText, modifyBuffer)
+import Graphics.Vty (Key(KBS, KDel, KChar, KEnter), Modifier(MCtrl))
+import Yamte.Types (Cursor, State(..), Mode(..), ModifiedKey, ModeResponse(..), Buffer(..), BufferText)
+import Yamte.Buffer (modifyBuffer)
 import Yamte.Cursor (moveDown, moveHome, moveLeft, moveRight)
 import Yamte.Editor
 
@@ -78,19 +79,18 @@ repeatCall :: Int -> (a -> a) -> (a -> a)
 repeatCall 1 function = function
 repeatCall count function = function . repeatCall (count - 1) function
 
-handleTrigger :: Trigger -> State -> ModeResponse
-handleTrigger (Right KeyBackspace) = NewState . backspace
-handleTrigger (Left '\127') = NewState . backspace
-handleTrigger (Right KeyDeleteCharacter) = NewState . backspace . moveRight
-handleTrigger (Left '\n') = NewState . insertNewline
-handleTrigger (Left '\t') = NewState . repeatCall 4 (insertCharacter ' ')
-handleTrigger (Right _) = const Propagate
-handleTrigger (Left '\^Q') = const Propagate
-handleTrigger (Left character)
+handleTrigger :: ModifiedKey -> State -> ModeResponse
+handleTrigger (KBS, []) = NewState . backspace
+handleTrigger (KChar '\127', []) = NewState . backspace
+handleTrigger (KDel, []) = NewState . backspace . moveRight
+handleTrigger (KEnter, []) = NewState . insertNewline
+handleTrigger (KChar '\t', []) = NewState . repeatCall 4 (insertCharacter ' ')
+handleTrigger (KChar character, [])
   | isPrint character = NewState . insertCharacter character
   | otherwise = const DoNothing
+handleTrigger _ = const Propagate
 
-handleTrigger' :: Trigger -> State -> IO ModeResponse
+handleTrigger' :: ModifiedKey -> State -> IO ModeResponse
 handleTrigger' trigger state = return $ handleTrigger trigger state
 
 inputMode :: Mode

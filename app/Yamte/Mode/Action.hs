@@ -2,32 +2,33 @@ module Yamte.Mode.Action
   ( actionMode
   ) where
 
-import UI.NCurses (Key(..))
+import Graphics.Vty (Key(KLeft, KRight, KUp, KDown, KHome, KEnd, KChar), Modifier(MCtrl))
 import Yamte.Cursor
-import Yamte.Editor (Mode, enterMode, leaveMode)
+import Yamte.Editor (enterMode, leaveMode)
 import Yamte.Mode.File (fileMode)
-import Yamte.Mode.GenericAction
+import Yamte.Mode.GenericAction (makeActionMode)
 import Yamte.Mode.Input (inputMode)
+import Yamte.Types (Mode, Action(..))
 
 actions :: [Action]
 actions =
-  [ (Action (Left '\^Q') leaveMode)
-  , (Action (Left 'a') moveLeft)
-  , (Action (Right KeyLeftArrow) moveLeft)
-  , (Action (Left 'd') moveRight)
-  , (Action (Right KeyRightArrow) moveRight)
-  , (Action (Left 'w') moveUp)
-  , (Action (Right KeyUpArrow) moveUp)
-  , (Action (Left 's') moveDown)
-  , (Action (Right KeyDownArrow) moveDown)
-  , (Action (Left '\^W') moveTop)
-  , (Action (Left '\^S') moveBottom)
-  , (Action (Left '\^A') moveHome)
-  , (Action (Right KeyHome) moveHome)
-  , (Action (Left '\^D') moveEnd)
-  , (Action (Right KeyEnd) moveEnd)
-  , (Action (Left 'e') $ enterMode inputMode)
-  , (Action (Left 'f') $ enterMode fileMode)
+  [ (Action (KChar 'q', [MCtrl]) leaveMode)
+  , (Action (KChar 'a', []) moveLeft)
+  , (Action (KLeft, []) moveLeft)
+  , (Action (KChar 'd', []) moveRight)
+  , (Action (KRight, []) moveRight)
+  , (Action (KChar 'w', []) moveUp)
+  , (Action (KUp, []) moveUp)
+  , (Action (KChar 's', []) moveDown)
+  , (Action (KDown, []) moveDown)
+  , (Action (KChar 'w', [MCtrl]) moveTop)
+  , (Action (KChar 's', [MCtrl]) moveBottom)
+  , (Action (KChar 'a', [MCtrl]) moveHome)
+  , (Action (KHome, []) moveHome)
+  , (Action (KChar 'd', [MCtrl]) moveEnd)
+  , (Action (KEnd, []) moveEnd)
+  , (Action (KChar 'e', []) $ enterMode inputMode)
+  , (Action (KChar 'f', []) $ enterMode fileMode)
   ]
 
 actionMode :: Mode

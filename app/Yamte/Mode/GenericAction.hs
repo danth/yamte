@@ -1,38 +1,43 @@
 module Yamte.Mode.GenericAction
-  ( Action(..)
-  , makeActionMode
+  ( makeActionMode
   ) where
 
 import Data.List (find, intercalate)
-import UI.NCurses (Key(..))
-import Yamte.Editor (Mode(Mode), ModeResponse(..), State(..), Trigger)
-
-data Action
-  = Action Trigger (State -> State)
-  | IOAction Trigger (State -> IO State)
+import Graphics.Vty (Key(KUp, KDown, KLeft, KRight, KChar, KFun), Modifier(..))
+import Yamte.Types (Action(..), Mode(..), ModeResponse(..), State(..), ModifiedKey)
 
 showKey :: Key -> String
-showKey KeyUpArrow = "↑"
-showKey KeyDownArrow = "↓"
-showKey KeyLeftArrow = "←"
-showKey KeyRightArrow = "→"
-showKey key = drop 3 $ show key
+showKey KUp = "↑"
+showKey KDown = "↓"
+showKey KLeft = "←"
+showKey KRight = "→"
+showKey (KChar char) = [char]
+showKey (KFun num) = "F" ++ show num
+showKey key = tail $ show key
+
+showModifier :: Modifier -> String
+showModifier MShift = "Shift"
+showModifier MCtrl = "Ctrl"
+showModifier MMeta = "Meta"
+showModifier MAlt = "Alt"
+
+showModifiedKey :: ModifiedKey -> String
+showModifiedKey (key, modifiers) =
+  intercalate "+" $ (map showModifier modifiers) ++ [showKey key]
 
 instance Show Action where
-  show (Action (Left char) _) = [char]
-  show (Action (Right key) _) = showKey key
-  show (IOAction (Left char) _) = [char]
-  show (IOAction (Right key) _) = showKey key
+  show (Action key _) = showModifiedKey key
+  show (IOAction key _) = showModifiedKey key
 
-getTrigger :: Action -> Trigger
+getTrigger :: Action -> ModifiedKey
 getTrigger (Action trigger _) = trigger
 getTrigger (IOAction trigger _) = trigger
 
-findAction :: [Action] -> Trigger -> Maybe Action
+findAction :: [Action] -> ModifiedKey -> Maybe Action
 findAction actions trigger =
   find (\action -> getTrigger action == trigger) actions
 
-handleTrigger :: [Action] -> Trigger -> State -> IO ModeResponse
+handleTrigger :: [Action] -> ModifiedKey -> State -> IO ModeResponse
 handleTrigger actions trigger state =
   case findAction actions trigger of
     Nothing -> return Propagate
@@ -47,7 +52,7 @@ showHints actions state =
    in state {stateMessage = message}
 
 makeHintAction :: [Action] -> Action
-makeHintAction actions = Action (Left '?') $ showHints actions
+makeHintAction actions = Action (KChar '?', []) $ showHints actions
 
 makeActionMode :: String -> [Action] -> Mode
 makeActionMode name actions =
