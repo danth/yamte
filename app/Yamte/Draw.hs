@@ -7,7 +7,7 @@ import Brick.Types (Location(..), Padding(Max), ViewportType(Both), Widget)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Core as W
 import Brick.Widgets.Core ((<=>))
-import Data.List (intersperse, intercalate)
+import Data.List (intercalate, intersperse)
 import Data.List.Index (imap)
 import qualified Data.Text as T
 import Skylighting.Types (SourceLine, Syntax(sName), Token)
