@@ -6,7 +6,6 @@ import Brick.BorderMap (Edges(..))
 import Brick.Types (Location(..), Padding(Max), ViewportType(Both), Widget)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Core as W
-import Brick.Widgets.Core ((<=>))
 import Data.List (intercalate, intersperse)
 import Data.List.Index (imap)
 import qualified Data.Text as T
@@ -36,9 +35,9 @@ drawStatus state = W.hBox $ intersperse separator widgets
       , ((T.unpack $ sName $ bufferSyntax buffer) ++ " highlighting")
       ]
     widgets :: [Widget']
-    widgets = map (W.padLeftRight 1 . W.str) elements
+    widgets = map W.str elements
     separator :: Widget'
-    separator = W.hLimit 2 $ B.hBorder
+    separator = W.str " • "
 
 drawBuffer :: State -> Widget'
 drawBuffer state = W.vBox $ imap drawLine lines
@@ -70,9 +69,7 @@ drawBuffer state = W.vBox $ imap drawLine lines
     lines = bufferHighlighted $ stateBuffer state
 
 drawViewport :: State -> Widget'
-drawViewport state =
-  B.borderWithLabel (drawStatus state) $
-  W.viewport FileViewport Both $ drawBuffer state
+drawViewport state = W.viewport FileViewport Both $ drawBuffer state
 
 drawMessage :: State -> Widget'
 drawMessage = W.str . stateMessage
@@ -80,4 +77,9 @@ drawMessage = W.str . stateMessage
 draw :: State -> [Widget']
 draw state = [ui]
   where
-    ui = drawViewport state <=> drawMessage state
+    ui = W.vBox [ drawStatus state
+                , B.hBorder
+                , drawViewport state
+                , B.hBorder
+                , drawMessage state
+                ]
