@@ -5,7 +5,6 @@ module Yamte.Draw
 import Brick.BorderMap (Edges(..))
 import Brick.Types
   ( Location(..)
-  , Padding(..)
   , Size(Greedy)
   , ViewportType(Both)
   , Widget(..)
@@ -17,6 +16,7 @@ import Brick.Types
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as W
+import Brick.Util (clamp)
 import Data.List (intercalate, intersperse)
 import Data.List.Index (indexed)
 import Data.Maybe (fromMaybe)
@@ -53,22 +53,21 @@ drawViewport :: State -> Widget'
 drawViewport state =
   Widget Greedy Greedy $ do
     context <- getContext
-    let offset :: Int -> Int -> Int
-        offset cursorPosition screenSize =
-          max 0 $ cursorPosition - (screenSize `div` 2)
+    let lines :: [(Int, SourceLine)]
+        lines = indexed $ bufferHighlighted $ stateBuffer state
+        offset :: Int -> Int -> Int
+        offset cursorPosition screenSize = cursorPosition - (screenSize `div` 2)
         (cursorLine, cursorColumn) = stateCursor state
         viewHeight = availHeight context
         viewWidth = availWidth context
-        lineOffset = offset cursorLine viewHeight
-        columnOffset = offset cursorColumn viewWidth
-        lines :: [(Int, SourceLine)]
-        lines =
-          take viewHeight $
-          drop lineOffset $ indexed $ bufferHighlighted $ stateBuffer state
+        lineOffset = clamp 0 (length lines - viewHeight) $ offset cursorLine viewHeight
+        columnOffset = max 0 $ offset cursorColumn viewWidth
+        visibleLines :: [(Int, SourceLine)]
+        visibleLines = take viewHeight $ drop lineOffset $ lines
         drawLineNumber :: Int -> Widget'
         drawLineNumber lineNumber = W.str $ show $ lineNumber + 1
         lineNumbers :: [Widget']
-        lineNumbers = map (drawLineNumber . fst) lines
+        lineNumbers = map (drawLineNumber . fst) visibleLines
         drawToken :: Token -> Widget'
         drawToken (tokenType, tokenText) =
           W.withAttr (findAttribute tokenType) $ W.txt tokenText
@@ -86,16 +85,12 @@ drawViewport state =
                 then W.showCursor FileCursor (Location (cursorColumn, 0))
                 else id
         lineWidgets :: [Widget']
-        lineWidgets = map drawLine lines
-        padding :: Widget' -> Widget'
-        padding = W.padBottom Max . W.padTop (Pad topPadding)
-          where
-            topPadding = max 0 $ (viewHeight `div` 2) - cursorLine
+        lineWidgets = map drawLine visibleLines
     render $
-      padding $
+      C.vCenter $
       W.hBox
         [ W.vBox lineNumbers
-        , W.vLimit (length lines) B.vBorder
+        , W.vLimit (length visibleLines) B.vBorder
         , W.vBox lineWidgets
         ]
 
