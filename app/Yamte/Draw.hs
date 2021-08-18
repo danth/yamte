@@ -13,10 +13,10 @@ import Brick.Types
   , getContext
   , render
   )
+import Brick.Util (clamp)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as W
-import Brick.Util (clamp)
 import Data.List (intercalate, intersperse)
 import Data.List.Index (indexed)
 import Data.Maybe (fromMaybe)
@@ -60,7 +60,8 @@ drawViewport state =
         (cursorLine, cursorColumn) = stateCursor state
         viewHeight = availHeight context
         viewWidth = availWidth context
-        lineOffset = clamp 0 (length lines - viewHeight) $ offset cursorLine viewHeight
+        lineOffset =
+          clamp 0 (length lines - viewHeight) $ offset cursorLine viewHeight
         columnOffset = max 0 $ offset cursorColumn viewWidth
         visibleLines :: [(Int, SourceLine)]
         visibleLines = take viewHeight $ drop lineOffset $ lines
