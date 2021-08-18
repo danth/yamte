@@ -87,8 +87,8 @@ type Event = ()
 
 type Event' = BrickEvent Resource Event
 
-data Resource
-  = FileCursor
+data Resource =
+  FileCursor
   deriving (Show, Eq, Ord)
 
 type Widget' = Widget Resource
