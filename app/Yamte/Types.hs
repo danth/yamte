@@ -89,7 +89,6 @@ type Event' = BrickEvent Resource Event
 
 data Resource
   = FileCursor
-  | FileViewport
   deriving (Show, Eq, Ord)
 
 type Widget' = Widget Resource

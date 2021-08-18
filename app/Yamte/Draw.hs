@@ -3,12 +3,12 @@ module Yamte.Draw
   ) where
 
 import Brick.BorderMap (Edges(..))
-import Brick.Types (Location(..), Padding(Max), ViewportType(Both), Widget)
+import Brick.Types (Location(..), Padding(Max), ViewportType(Both), Widget(..), Size(Greedy), getContext, availHeight, availWidth, render)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as W
 import Data.List (intercalate, intersperse)
-import Data.List.Index (imap)
+import Data.List.Index (indexed)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Skylighting.Types (SourceLine, Syntax(sName), Token)
@@ -39,37 +39,40 @@ drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
     separator :: Widget'
     separator = W.str " • "
 
-drawBuffer :: State -> Widget'
-drawBuffer state = W.vBox $ imap drawLine lines
-  where
+drawViewport :: State -> Widget'
+drawViewport state = Widget Greedy Greedy $ do
+  context <- getContext
+  let
+    offset :: Int -> Int -> Int
+    offset cursorPosition screenSize = max 0 $ cursorPosition - (screenSize `div` 2)
     (cursorLine, cursorColumn) = stateCursor state
-    singleVerticalBorder :: Widget'
-    singleVerticalBorder = B.joinableBorder $ Edges True True False False
-    drawLine :: Int -> SourceLine -> Widget'
-    drawLine lineNumber tokens = W.hBox [sidebar, singleVerticalBorder, line]
+    viewHeight = availHeight context
+    viewWidth = availWidth context
+    lineOffset = offset cursorLine viewHeight
+    columnOffset = offset cursorColumn viewWidth
+    lines :: [(Int, SourceLine)]
+    lines = take viewHeight $ drop lineOffset $ indexed $ bufferHighlighted $ stateBuffer state
+    drawLineNumber :: Int -> Widget'
+    drawLineNumber lineNumber = W.str $ show $ lineNumber + 1
+    lineNumbers :: [Widget']
+    lineNumbers = map (drawLineNumber . fst) lines
+    drawToken :: Token -> Widget'
+    drawToken (tokenType, tokenText) =
+      W.withAttr (findAttribute tokenType) $ W.txt tokenText
+    drawLine :: (Int, SourceLine) -> Widget'
+    drawLine (lineNumber, tokens) =
+      W.cropLeftBy columnOffset $ setCursor $ case tokens of
+                                                [] -> W.vLimit 1 $ W.fill ' '
+                                                t -> W.hBox $ map drawToken t
       where
-        sidebar :: Widget'
-        sidebar = W.hLimit 4 $ W.padRight Max $ W.str (show $ lineNumber + 1)
         setCursor :: Widget' -> Widget'
         setCursor =
           if lineNumber == cursorLine
             then W.showCursor FileCursor (Location (cursorColumn, 0))
             else id
-        makeVisible :: Widget' -> Widget'
-        makeVisible =
-          if lineNumber == cursorLine
-            then W.visibleRegion (Location (cursorColumn, 0)) (1, 1)
-            else id
-        drawToken :: Token -> Widget'
-        drawToken (tokenType, tokenText) =
-          W.withAttr (findAttribute tokenType) $ W.txt tokenText
-        line :: Widget'
-        line = setCursor $ makeVisible $ W.hBox $ map drawToken tokens
-    lines :: [SourceLine]
-    lines = bufferHighlighted $ stateBuffer state
-
-drawViewport :: State -> Widget'
-drawViewport state = W.viewport FileViewport Both $ drawBuffer state
+    lineWidgets :: [Widget']
+    lineWidgets = map drawLine lines
+  render $ W.hBox [W.vBox lineNumbers, B.vBorder, W.vBox lineWidgets]
 
 drawMessage :: State -> Widget'
 drawMessage = C.hCenter . W.str . stateMessage
@@ -81,7 +84,7 @@ draw state = [ui]
       W.vBox
         [ drawStatus state
         , B.hBorder
-        , drawViewport state
+        , W.padBottom Max $ drawViewport state
         , B.hBorder
         , drawMessage state
         ]
