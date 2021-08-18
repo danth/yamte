@@ -77,9 +77,11 @@ drawMessage = W.str . stateMessage
 draw :: State -> [Widget']
 draw state = [ui]
   where
-    ui = W.vBox [ drawStatus state
-                , B.hBorder
-                , drawViewport state
-                , B.hBorder
-                , drawMessage state
-                ]
+    ui =
+      W.vBox
+        [ drawStatus state
+        , B.hBorder
+        , drawViewport state
+        , B.hBorder
+        , drawMessage state
+        ]
