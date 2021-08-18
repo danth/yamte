@@ -5,7 +5,7 @@ module Yamte.Draw
 import Brick.BorderMap (Edges(..))
 import Brick.Types
   ( Location(..)
-  , Padding(Max)
+  , Padding(..)
   , Size(Greedy)
   , ViewportType(Both)
   , Widget(..)
@@ -87,7 +87,10 @@ drawViewport state =
                 else id
         lineWidgets :: [Widget']
         lineWidgets = map drawLine lines
-    render $ W.hBox [W.vBox lineNumbers, B.vBorder, W.vBox lineWidgets]
+        padding :: Widget' -> Widget'
+        padding = W.padBottom Max . W.padTop (Pad topPadding)
+          where topPadding = max 0 $ (viewHeight `div` 2) - cursorLine
+    render $ padding $ W.hBox [W.vBox lineNumbers, W.vLimit (length lines) B.vBorder, W.vBox lineWidgets]
 
 drawMessage :: State -> Widget'
 drawMessage = C.hCenter . W.str . stateMessage
@@ -99,7 +102,7 @@ draw state = [ui]
       W.vBox
         [ drawStatus state
         , B.hBorder
-        , W.padBottom Max $ drawViewport state
+        , drawViewport state
         , B.hBorder
         , drawMessage state
         ]
