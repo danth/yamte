@@ -89,8 +89,15 @@ drawViewport state =
         lineWidgets = map drawLine lines
         padding :: Widget' -> Widget'
         padding = W.padBottom Max . W.padTop (Pad topPadding)
-          where topPadding = max 0 $ (viewHeight `div` 2) - cursorLine
-    render $ padding $ W.hBox [W.vBox lineNumbers, W.vLimit (length lines) B.vBorder, W.vBox lineWidgets]
+          where
+            topPadding = max 0 $ (viewHeight `div` 2) - cursorLine
+    render $
+      padding $
+      W.hBox
+        [ W.vBox lineNumbers
+        , W.vLimit (length lines) B.vBorder
+        , W.vBox lineWidgets
+        ]
 
 drawMessage :: State -> Widget'
 drawMessage = C.hCenter . W.str . stateMessage
