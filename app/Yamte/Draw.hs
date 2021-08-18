@@ -5,6 +5,7 @@ module Yamte.Draw
 import Brick.BorderMap (Edges(..))
 import Brick.Types (Location(..), Padding(Max), ViewportType(Both), Widget)
 import qualified Brick.Widgets.Border as B
+import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as W
 import Data.List (intercalate, intersperse)
 import Data.List.Index (imap)
@@ -19,7 +20,7 @@ modeStatus modes =
    in (intercalate " → " modeNames) ++ " mode"
 
 drawStatus :: State -> Widget'
-drawStatus state = W.hBox $ intersperse separator widgets
+drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
   where
     buffer = stateBuffer state
     elements :: [String]
@@ -72,7 +73,7 @@ drawViewport :: State -> Widget'
 drawViewport state = W.viewport FileViewport Both $ drawBuffer state
 
 drawMessage :: State -> Widget'
-drawMessage = W.str . stateMessage
+drawMessage = C.hCenter . W.str . stateMessage
 
 draw :: State -> [Widget']
 draw state = [ui]
