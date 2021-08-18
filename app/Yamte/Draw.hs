@@ -28,8 +28,8 @@ drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
     elements =
       [ fromMaybe "[No name]" $ bufferFilename buffer
       , if bufferTouched buffer
-           then "Touched"
-           else "Untouched"
+          then "Touched"
+          else "Untouched"
       , show (length $ bufferText buffer) ++ " lines"
       , modeStatus $ stateModes state
       , T.unpack (sName $ bufferSyntax buffer) ++ " highlighting"
