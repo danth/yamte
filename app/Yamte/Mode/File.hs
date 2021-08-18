@@ -14,9 +14,9 @@ leaveAfter operation state = do
 
 actions :: [Action]
 actions =
-  [ (Action (KChar 'Q', [MCtrl]) leaveMode)
-  , (IOAction (KChar 's', []) $ leaveAfter saveFile)
-  , (IOAction (KChar 'r', []) $ leaveAfter reloadFile)
+  [ Action (KChar 'Q', [MCtrl]) leaveMode
+  , IOAction (KChar 's', []) $ leaveAfter saveFile
+  , IOAction (KChar 'r', []) $ leaveAfter reloadFile
   ]
 
 fileMode :: Mode

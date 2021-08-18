@@ -29,7 +29,7 @@ showModifier MAlt = "Alt"
 
 showModifiedKey :: ModifiedKey -> String
 showModifiedKey (key, modifiers) =
-  intercalate "+" $ (map showModifier modifiers) ++ [showKey key]
+  intercalate "+" $ map showModifier modifiers ++ [showKey key]
 
 instance Show Action where
   show (Action key _) = showModifiedKey key
@@ -54,7 +54,7 @@ handleTrigger actions trigger state =
 
 showHints :: [Action] -> State -> State
 showHints actions state =
-  let message = intercalate " " $ map show actions
+  let message = unwords $ map show actions
    in state {stateMessage = message}
 
 makeHintAction :: [Action] -> Action
@@ -62,5 +62,5 @@ makeHintAction actions = Action (KChar '?', []) $ showHints actions
 
 makeActionMode :: String -> [Action] -> Mode
 makeActionMode name actions =
-  let actions' = (makeHintAction actions) : actions
+  let actions' = makeHintAction actions : actions
    in Mode name $ handleTrigger actions'

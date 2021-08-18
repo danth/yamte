@@ -26,8 +26,8 @@ main :: IO ()
 main = do
   arguments <- getArgs
   state <-
-    if length arguments > 0
-      then loadFile (arguments !! 0) initialState
-      else return initialState
+    if null arguments
+      then return initialState
+      else loadFile (head arguments) initialState
   defaultMain app state
   return ()

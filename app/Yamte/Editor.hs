@@ -64,7 +64,7 @@ activeMode state =
     mode:modes -> Just mode
 
 enterMode :: Mode -> State -> State
-enterMode mode state = state {stateModes = mode : (stateModes state)}
+enterMode mode state = state {stateModes = mode : stateModes state}
 
 leaveMode :: State -> State
 leaveMode state = state {stateModes = tail $ stateModes state}

@@ -24,7 +24,7 @@ rowLength' state = rowLength $ bufferText $ stateBuffer state
 
 clampCursor :: BufferText -> Cursor -> Cursor
 clampCursor buffer (row, column) =
-  let row' = clamp 0 ((length buffer) - 1) row
+  let row' = clamp 0 (length buffer - 1) row
       column' = clamp 0 (rowLength buffer row') column
    in (row', column')
 

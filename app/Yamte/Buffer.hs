@@ -48,7 +48,7 @@ bufferFromString :: String -> Buffer
 bufferFromString string =
   let text = S.fromList $ T.lines $ T.pack string
       text' =
-        if length text == 0
+        if null text
           then S.singleton T.empty
           else text
    in def {bufferText = text'}

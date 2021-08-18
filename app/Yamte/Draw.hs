@@ -9,6 +9,7 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as W
 import Data.List (intercalate, intersperse)
 import Data.List.Index (imap)
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Skylighting.Types (SourceLine, Syntax(sName), Token)
 import Yamte.Attributes (findAttribute)
@@ -17,7 +18,7 @@ import Yamte.Types (Buffer(..), Mode(..), Resource(..), State(..), Widget')
 modeStatus :: [Mode] -> String
 modeStatus modes =
   let modeNames = reverse $ map (\(Mode name _) -> name) modes
-   in (intercalate " → " modeNames) ++ " mode"
+   in intercalate " → " modeNames ++ " mode"
 
 drawStatus :: State -> Widget'
 drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
@@ -25,15 +26,13 @@ drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
     buffer = stateBuffer state
     elements :: [String]
     elements =
-      [ (case bufferFilename buffer of
-           Nothing -> "[No name]"
-           Just filename -> filename)
-      , (if bufferTouched buffer
+      [ fromMaybe "[No name]" $ bufferFilename buffer
+      , if bufferTouched buffer
            then "Touched"
-           else "Untouched")
-      , (show (length $ bufferText buffer) ++ " lines")
-      , (modeStatus $ stateModes state)
-      , ((T.unpack $ sName $ bufferSyntax buffer) ++ " highlighting")
+           else "Untouched"
+      , show (length $ bufferText buffer) ++ " lines"
+      , modeStatus $ stateModes state
+      , T.unpack (sName $ bufferSyntax buffer) ++ " highlighting"
       ]
     widgets :: [Widget']
     widgets = map W.str elements

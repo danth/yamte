@@ -34,27 +34,27 @@ modifyStateCursor f state =
 deleteColumn :: Int -> T.Text -> T.Text
 deleteColumn column line =
   let (front, back) = T.splitAt column line
-   in (T.init front) `T.append` back
+   in T.init front `T.append` back
 
 deleteNewline :: Int -> BufferText -> BufferText
 deleteNewline 0 buffer = buffer
 deleteNewline row buffer =
   let line = buffer `S.index` row
-   in S.deleteAt row $ S.adjust' (\l -> l `T.append` line) (row - 1) buffer
+   in S.deleteAt row $ S.adjust' (`T.append` line) (row - 1) buffer
 
 backspace' :: Cursor -> State -> State
 backspace' (0, 0) state = state
 backspace' (row, 0) state =
   let buffer = stateBuffer state
       row' = row - 1
-      line = (bufferText buffer) `S.index` row'
+      line = bufferText buffer `S.index` row'
       column' = T.length line
    in state
         { stateCursor = (row', column')
         , stateBuffer = modifyBuffer (deleteNewline row) buffer
         }
 backspace' (row, column) state =
-  (moveLeft . (modifyState $ S.adjust' (deleteColumn column) row)) state
+  (moveLeft . modifyState (S.adjust' (deleteColumn column) row)) state
 
 backspace :: State -> State
 backspace state = backspace' (stateCursor state) state
@@ -63,7 +63,7 @@ insertNewline' :: Cursor -> BufferText -> (BufferText, Cursor)
 insertNewline' (row, column) buffer =
   let line = buffer `S.index` row
       (front, back) = T.splitAt column line
-      indentation = T.takeWhile ((==) ' ') front
+      indentation = T.takeWhile (' ' ==) front
       newLine = indentation `T.append` back
    in ( S.insertAt (row + 1) newLine $ S.update row front buffer
       , (row + 1, T.length indentation))
@@ -80,7 +80,7 @@ insertCharacter' character (row, column) buffer =
 
 insertCharacter :: Char -> State -> State
 insertCharacter character state =
-  (moveRight . (modifyState $ insertCharacter' character $ stateCursor state))
+  (moveRight . modifyState (insertCharacter' character $ stateCursor state))
     state
 
 repeatCall :: Int -> (a -> a) -> (a -> a)
