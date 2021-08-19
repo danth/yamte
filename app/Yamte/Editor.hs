@@ -15,6 +15,7 @@ import Control.Exception (Exception, try)
 import Control.Monad ((>=>))
 import Control.Monad.IO.Class (liftIO)
 import Data.List (find)
+import Data.Maybe (listToMaybe)
 import Graphics.Vty (Event(EvKey), Key(KChar), Modifier(MCtrl))
 import System.IO.Error (isDoesNotExistError)
 import Yamte.Buffer
@@ -62,10 +63,7 @@ saveFile state =
       return state {stateBuffer = buffer', stateMessage = "Saved " ++ filename}
 
 activeMode :: State -> Maybe Mode
-activeMode state =
-  case stateModes state of
-    [] -> Nothing
-    mode:modes -> Just mode
+activeMode = listToMaybe . stateModes
 
 enterMode :: Mode -> State -> State
 enterMode mode state = state {stateModes = mode : stateModes state}
