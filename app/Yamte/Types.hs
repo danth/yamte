@@ -77,8 +77,8 @@ instance Show ModifiedKey where
     intercalate "+" $ map showModifier modifiers ++ [showKey key]
 
 data Action
-  = Action ModifiedKey (State -> State)
-  | IOAction ModifiedKey (State -> IO State)
+  = Action ModifiedKey String (State -> State)
+  | IOAction ModifiedKey String (State -> IO State)
 
 data Mode
   = FunctionMode String (ModifiedKey -> State -> IO ModeResponse)
@@ -98,6 +98,7 @@ data State =
     { stateBuffer :: Buffer
     , stateMessage :: String
     , stateModes :: [Mode]
+    , stateShowHints :: Bool
     , stateCursor :: Cursor
     }
 
@@ -107,6 +108,7 @@ instance Default State where
       { stateBuffer = def
       , stateMessage = "Welcome to Yamte!"
       , stateModes = []
+      , stateShowHints = False
       , stateCursor = (0, 0)
       }
 

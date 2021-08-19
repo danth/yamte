@@ -5,6 +5,7 @@ module Yamte.Editor
   , activeMode
   , enterMode
   , leaveMode
+  , standardActions
   , handleEvent
   ) where
 
@@ -72,9 +73,18 @@ enterMode mode state = state {stateModes = mode : stateModes state}
 leaveMode :: State -> State
 leaveMode state = state {stateModes = tail $ stateModes state}
 
+standardActions :: [Action]
+standardActions = [hintAction, exitAction]
+  where
+    hintAction :: Action
+    hintAction = Action (ModifiedKey (KChar '?') []) "Toggle hints" $
+      \state -> state {stateShowHints = not $ stateShowHints state}
+    exitAction :: Action
+    exitAction = Action (ModifiedKey (KChar 'q') [MCtrl]) "Exit this mode" leaveMode
+
 getTrigger :: Action -> ModifiedKey
-getTrigger (Action trigger _) = trigger
-getTrigger (IOAction trigger _) = trigger
+getTrigger (Action trigger _ _) = trigger
+getTrigger (IOAction trigger _ _) = trigger
 
 findAction :: [Action] -> ModifiedKey -> Maybe Action
 findAction actions trigger =
@@ -82,17 +92,12 @@ findAction actions trigger =
 
 runAction :: Maybe Action -> State -> IO ModeResponse
 runAction Nothing = const $ return DoNothing
-runAction (Just (Action _ f)) = return . NewState . f
-runAction (Just (IOAction _ f)) = f >=> return . NewState
+runAction (Just (Action _ _ f)) = return . NewState . f
+runAction (Just (IOAction _ _ f)) = f >=> return . NewState
 
 handleKey :: Mode -> ModifiedKey -> State -> IO ModeResponse
 handleKey (FunctionMode _ f) = f
-handleKey (ActionMode _ actions) = runAction . findAction actions'
-  where
-    actions' :: [Action]
-    actions' = [exitAction] ++ actions
-    exitAction :: Action
-    exitAction = Action (ModifiedKey (KChar 'q') [MCtrl]) leaveMode
+handleKey (ActionMode _ actions) = runAction . findAction actions
 
 handleKey' :: [Mode] -> ModifiedKey -> State -> IO State
 handleKey' [] key state = return state

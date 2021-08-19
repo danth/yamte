@@ -3,7 +3,7 @@ module Yamte.Mode.File
   ) where
 
 import Graphics.Vty (Key(KChar), Modifier(MCtrl))
-import Yamte.Editor (leaveMode, reloadFile, saveFile)
+import Yamte.Editor (leaveMode, reloadFile, saveFile, standardActions)
 import Yamte.Types (Action(..), Mode(ActionMode), ModifiedKey(..), State)
 
 leaveAfter :: (State -> IO State) -> State -> IO State
@@ -13,10 +13,9 @@ leaveAfter operation state = do
 
 actions :: [Action]
 actions =
-  [ Action (ModifiedKey (KChar 'Q') [MCtrl]) leaveMode
-  , IOAction (ModifiedKey (KChar 's') []) $ leaveAfter saveFile
-  , IOAction (ModifiedKey (KChar 'r') []) $ leaveAfter reloadFile
+  [ IOAction (ModifiedKey (KChar 's') []) "Save file" $ leaveAfter saveFile
+  , IOAction (ModifiedKey (KChar 'r') []) "Reload file" $ leaveAfter reloadFile
   ]
 
 fileMode :: Mode
-fileMode = ActionMode "File" actions
+fileMode = ActionMode "File" $ standardActions ++ actions

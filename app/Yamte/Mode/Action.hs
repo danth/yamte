@@ -7,31 +7,30 @@ import Graphics.Vty
   , Modifier(MCtrl)
   )
 import Yamte.Cursor
-import Yamte.Editor (enterMode, leaveMode)
+import Yamte.Editor (enterMode, standardActions)
 import Yamte.Mode.File (fileMode)
 import Yamte.Mode.Input (inputMode)
 import Yamte.Types (Action(..), Mode(ActionMode), ModifiedKey(..))
 
 actions :: [Action]
 actions =
-  [ Action (ModifiedKey (KChar 'q') [MCtrl]) leaveMode
-  , Action (ModifiedKey (KChar 'a') []) moveLeft
-  , Action (ModifiedKey KLeft []) moveLeft
-  , Action (ModifiedKey (KChar 'd') []) moveRight
-  , Action (ModifiedKey KRight []) moveRight
-  , Action (ModifiedKey (KChar 'w') []) moveUp
-  , Action (ModifiedKey KUp []) moveUp
-  , Action (ModifiedKey (KChar 's') []) moveDown
-  , Action (ModifiedKey KDown []) moveDown
-  , Action (ModifiedKey (KChar 'w') [MCtrl]) moveTop
-  , Action (ModifiedKey (KChar 's') [MCtrl]) moveBottom
-  , Action (ModifiedKey (KChar 'a') [MCtrl]) moveHome
-  , Action (ModifiedKey KHome []) moveHome
-  , Action (ModifiedKey (KChar 'd') [MCtrl]) moveEnd
-  , Action (ModifiedKey KEnd []) moveEnd
-  , Action (ModifiedKey (KChar 'e') []) $ enterMode inputMode
-  , Action (ModifiedKey (KChar 'f') []) $ enterMode fileMode
+  [ Action (ModifiedKey (KChar 'a') []) "Move left one column" moveLeft
+  , Action (ModifiedKey KLeft []) "Move left one column" moveLeft
+  , Action (ModifiedKey (KChar 'd') []) "Move right one column" moveRight
+  , Action (ModifiedKey KRight []) "Move right one column" moveRight
+  , Action (ModifiedKey (KChar 'w') []) "Move up one line" moveUp
+  , Action (ModifiedKey KUp []) "Move up one line" moveUp
+  , Action (ModifiedKey (KChar 's') []) "Move down one line" moveDown
+  , Action (ModifiedKey KDown []) "Move down one line" moveDown
+  , Action (ModifiedKey (KChar 'w') [MCtrl]) "Move to the start of the file" moveTop
+  , Action (ModifiedKey (KChar 's') [MCtrl]) "Move to the end of the file" moveBottom
+  , Action (ModifiedKey (KChar 'a') [MCtrl]) "Move to the start of the line" moveHome
+  , Action (ModifiedKey KHome []) "Move to the start of the line" moveHome
+  , Action (ModifiedKey (KChar 'd') [MCtrl]) "Move to the end of the line" moveEnd
+  , Action (ModifiedKey KEnd []) "Move to the end of the line" moveEnd
+  , Action (ModifiedKey (KChar 'e') []) "Switch to input mode" $ enterMode inputMode
+  , Action (ModifiedKey (KChar 'f') []) "Switch to file mode" $ enterMode fileMode
   ]
 
 actionMode :: Mode
-actionMode = ActionMode "Action" actions
+actionMode = ActionMode "Action" $ standardActions ++ actions
