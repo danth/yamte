@@ -16,10 +16,9 @@ module Yamte.Types
 
 import Brick.Types (BrickEvent, EventM, Next, Widget)
 import Data.Default.Class (Default(..))
-import Data.List (intercalate)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Graphics.Vty (Key(KChar, KDown, KFun, KLeft, KRight, KUp), Modifier(..))
+import Graphics.Vty (Key(KBackTab, KChar, KDown, KFun, KLeft, KRight, KUp), Modifier(..))
 import Skylighting (syntaxByName)
 import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Types (SourceLine, Syntax)
@@ -62,19 +61,21 @@ showKey KDown = "↓"
 showKey KLeft = "←"
 showKey KRight = "→"
 showKey KUp = "↑"
+showKey (KChar '\t') = "⇥"
+showKey KBackTab = "⇤"
 showKey (KChar char) = [char]
 showKey (KFun num) = "F" ++ show num
 showKey key = tail $ show key
 
 showModifier :: Modifier -> String
-showModifier MShift = "Shift"
-showModifier MCtrl = "Ctrl"
-showModifier MMeta = "Meta"
-showModifier MAlt = "Alt"
+showModifier MShift = "⇧"
+showModifier MCtrl = "⌃"
+showModifier MMeta = "◆"
+showModifier MAlt = "⎇"
 
 instance Show ModifiedKey where
   show (ModifiedKey key modifiers) =
-    intercalate "+" $ map showModifier modifiers ++ [showKey key]
+    concatMap showModifier modifiers ++ showKey key
 
 data Action
   = Action ModifiedKey String (State -> State)

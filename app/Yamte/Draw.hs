@@ -125,7 +125,7 @@ drawHints state
     buildHints :: [Action] -> [Hint]
     buildHints = map buildHint . groupBy ((==) `on` getDescription)
     keySeparator :: Widget'
-    keySeparator = W.padLeftRight 1 $ W.vLimit 1 B.vBorder
+    keySeparator = W.vLimit 1 B.vBorder
     drawHint :: Hint -> [Widget']
     drawHint (keys, description) =
       [ W.hBox $ intersperse keySeparator $ map (W.str . show) keys
