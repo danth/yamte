@@ -75,7 +75,7 @@ drawViewport state =
           clamp 0 (length lines - viewHeight) $ offset cursorLine viewHeight
         columnOffset = max 0 $ offset cursorColumn viewWidth
         visibleLines :: [(Int, SourceLine)]
-        visibleLines = take viewHeight $ drop lineOffset $ lines
+        visibleLines = take viewHeight $ drop lineOffset lines
         drawLineNumber :: Int -> Widget'
         drawLineNumber lineNumber = W.str $ show $ lineNumber + 1
         lineNumbers :: [Widget']
