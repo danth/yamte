@@ -18,7 +18,10 @@ import Brick.Types (BrickEvent, EventM, Next, Widget)
 import Data.Default.Class (Default(..))
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Graphics.Vty (Key(KBackTab, KChar, KDown, KFun, KLeft, KRight, KUp), Modifier(..))
+import Graphics.Vty
+  ( Key(KBackTab, KChar, KDown, KFun, KLeft, KRight, KUp)
+  , Modifier(..)
+  )
 import Skylighting (syntaxByName)
 import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Types (SourceLine, Syntax)
