@@ -53,7 +53,9 @@ instance Default Buffer where
       , bufferFilename = Nothing
       }
 
-data ModifiedKey = ModifiedKey Key [Modifier] deriving (Eq)
+data ModifiedKey =
+  ModifiedKey Key [Modifier]
+  deriving (Eq)
 
 showKey :: Key -> String
 showKey KDown = "↓"

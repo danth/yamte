@@ -92,7 +92,8 @@ handleTrigger (ModifiedKey KBS []) = NewState . backspace
 handleTrigger (ModifiedKey (KChar '\127') []) = NewState . backspace
 handleTrigger (ModifiedKey KDel []) = NewState . backspace . moveRight
 handleTrigger (ModifiedKey KEnter []) = NewState . insertNewline
-handleTrigger (ModifiedKey (KChar '\t') []) = NewState . repeatCall 4 (insertCharacter ' ')
+handleTrigger (ModifiedKey (KChar '\t') []) =
+  NewState . repeatCall 4 (insertCharacter ' ')
 handleTrigger (ModifiedKey (KChar character) [])
   | isPrint character = NewState . insertCharacter character
   | otherwise = const DoNothing
