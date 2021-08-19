@@ -13,9 +13,9 @@ import Yamte.Types
   ( Buffer(..)
   , BufferText
   , Cursor
-  , Mode(..)
+  , Mode(FunctionMode)
   , ModeResponse(..)
-  , ModifiedKey
+  , ModifiedKey(..)
   , State(..)
   )
 
@@ -88,12 +88,12 @@ repeatCall 1 function = function
 repeatCall count function = function . repeatCall (count - 1) function
 
 handleTrigger :: ModifiedKey -> State -> ModeResponse
-handleTrigger (KBS, []) = NewState . backspace
-handleTrigger (KChar '\127', []) = NewState . backspace
-handleTrigger (KDel, []) = NewState . backspace . moveRight
-handleTrigger (KEnter, []) = NewState . insertNewline
-handleTrigger (KChar '\t', []) = NewState . repeatCall 4 (insertCharacter ' ')
-handleTrigger (KChar character, [])
+handleTrigger (ModifiedKey KBS []) = NewState . backspace
+handleTrigger (ModifiedKey (KChar '\127') []) = NewState . backspace
+handleTrigger (ModifiedKey KDel []) = NewState . backspace . moveRight
+handleTrigger (ModifiedKey KEnter []) = NewState . insertNewline
+handleTrigger (ModifiedKey (KChar '\t') []) = NewState . repeatCall 4 (insertCharacter ' ')
+handleTrigger (ModifiedKey (KChar character) [])
   | isPrint character = NewState . insertCharacter character
   | otherwise = const DoNothing
 handleTrigger _ = const Propagate
@@ -102,4 +102,4 @@ handleTrigger' :: ModifiedKey -> State -> IO ModeResponse
 handleTrigger' trigger state = return $ handleTrigger trigger state
 
 inputMode :: Mode
-inputMode = Mode "Input" handleTrigger'
+inputMode = FunctionMode "Input" handleTrigger'

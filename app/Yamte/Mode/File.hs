@@ -4,8 +4,7 @@ module Yamte.Mode.File
 
 import Graphics.Vty (Key(KChar), Modifier(MCtrl))
 import Yamte.Editor (leaveMode, reloadFile, saveFile)
-import Yamte.Mode.GenericAction (makeActionMode)
-import Yamte.Types (Action(..), Mode, State)
+import Yamte.Types (Action(..), Mode(ActionMode), ModifiedKey(..), State)
 
 leaveAfter :: (State -> IO State) -> State -> IO State
 leaveAfter operation state = do
@@ -14,10 +13,10 @@ leaveAfter operation state = do
 
 actions :: [Action]
 actions =
-  [ Action (KChar 'Q', [MCtrl]) leaveMode
-  , IOAction (KChar 's', []) $ leaveAfter saveFile
-  , IOAction (KChar 'r', []) $ leaveAfter reloadFile
+  [ Action (ModifiedKey (KChar 'Q') [MCtrl]) leaveMode
+  , IOAction (ModifiedKey (KChar 's') []) $ leaveAfter saveFile
+  , IOAction (ModifiedKey (KChar 'r') []) $ leaveAfter reloadFile
   ]
 
 fileMode :: Mode
-fileMode = makeActionMode "File" actions
+fileMode = ActionMode "File" actions

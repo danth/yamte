@@ -23,11 +23,11 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Skylighting.Types (SourceLine, Syntax(sName), Token)
 import Yamte.Attributes (findAttribute)
-import Yamte.Types (Buffer(..), Mode(..), Resource(..), State(..), Widget')
+import Yamte.Types (Buffer(..), Mode, Resource(..), State(..), Widget')
 
 modeStatus :: [Mode] -> String
 modeStatus modes =
-  let modeNames = reverse $ map (\(Mode name _) -> name) modes
+  let modeNames = reverse $ map show modes
    in intercalate " → " modeNames ++ " mode"
 
 drawStatus :: State -> Widget'

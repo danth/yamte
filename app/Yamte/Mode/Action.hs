@@ -9,30 +9,29 @@ import Graphics.Vty
 import Yamte.Cursor
 import Yamte.Editor (enterMode, leaveMode)
 import Yamte.Mode.File (fileMode)
-import Yamte.Mode.GenericAction (makeActionMode)
 import Yamte.Mode.Input (inputMode)
-import Yamte.Types (Action(..), Mode)
+import Yamte.Types (Action(..), Mode(ActionMode), ModifiedKey(..))
 
 actions :: [Action]
 actions =
-  [ Action (KChar 'q', [MCtrl]) leaveMode
-  , Action (KChar 'a', []) moveLeft
-  , Action (KLeft, []) moveLeft
-  , Action (KChar 'd', []) moveRight
-  , Action (KRight, []) moveRight
-  , Action (KChar 'w', []) moveUp
-  , Action (KUp, []) moveUp
-  , Action (KChar 's', []) moveDown
-  , Action (KDown, []) moveDown
-  , Action (KChar 'w', [MCtrl]) moveTop
-  , Action (KChar 's', [MCtrl]) moveBottom
-  , Action (KChar 'a', [MCtrl]) moveHome
-  , Action (KHome, []) moveHome
-  , Action (KChar 'd', [MCtrl]) moveEnd
-  , Action (KEnd, []) moveEnd
-  , Action (KChar 'e', []) $ enterMode inputMode
-  , Action (KChar 'f', []) $ enterMode fileMode
+  [ Action (ModifiedKey (KChar 'q') [MCtrl]) leaveMode
+  , Action (ModifiedKey (KChar 'a') []) moveLeft
+  , Action (ModifiedKey KLeft []) moveLeft
+  , Action (ModifiedKey (KChar 'd') []) moveRight
+  , Action (ModifiedKey KRight []) moveRight
+  , Action (ModifiedKey (KChar 'w') []) moveUp
+  , Action (ModifiedKey KUp []) moveUp
+  , Action (ModifiedKey (KChar 's') []) moveDown
+  , Action (ModifiedKey KDown []) moveDown
+  , Action (ModifiedKey (KChar 'w') [MCtrl]) moveTop
+  , Action (ModifiedKey (KChar 's') [MCtrl]) moveBottom
+  , Action (ModifiedKey (KChar 'a') [MCtrl]) moveHome
+  , Action (ModifiedKey KHome []) moveHome
+  , Action (ModifiedKey (KChar 'd') [MCtrl]) moveEnd
+  , Action (ModifiedKey KEnd []) moveEnd
+  , Action (ModifiedKey (KChar 'e') []) $ enterMode inputMode
+  , Action (ModifiedKey (KChar 'f') []) $ enterMode fileMode
   ]
 
 actionMode :: Mode
-actionMode = makeActionMode "Action" actions
+actionMode = ActionMode "Action" actions
