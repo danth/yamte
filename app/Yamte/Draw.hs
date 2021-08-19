@@ -117,22 +117,20 @@ drawHints state
     case activeMode state of
       Nothing -> W.emptyWidget
       (Just (FunctionMode _ _)) -> W.emptyWidget
-      (Just (ActionMode _ actions)) -> drawTable actions
+      (Just (ActionMode _ actions)) -> drawHints actions
   | otherwise = W.emptyWidget
   where
     buildHint :: [Action] -> Hint
     buildHint actions = (map getTrigger actions, getDescription $ head actions)
     buildHints :: [Action] -> [Hint]
     buildHints = map buildHint . groupBy ((==) `on` getDescription)
-    keySeparator :: Widget'
-    keySeparator = W.vLimit 1 B.vBorder
     drawHint :: Hint -> [Widget']
     drawHint (keys, description) =
-      [ W.hBox $ intersperse keySeparator $ map (W.str . show) keys
-      , W.str description
-      ]
-    drawTable :: [Action] -> Widget'
-    drawTable = WT.renderTable . WT.table . map drawHint . buildHints
+      map (W.padLeftRight 1 . W.str) [unwords $ map show keys, description]
+    drawTable :: [[Widget']] -> Widget'
+    drawTable = WT.renderTable . WT.rowBorders False . WT.table
+    drawHints :: [Action] -> Widget'
+    drawHints = drawTable . map drawHint . buildHints
 
 drawMessage :: State -> Widget'
 drawMessage = C.hCenter . W.str . stateMessage
