@@ -20,17 +20,19 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as W
 import Brick.Widgets.Core ((<+>))
 import qualified Brick.Widgets.Table as WT
-import Data.List (intercalate, intersperse)
+import Data.Function (on)
+import Data.List (groupBy, intercalate, intersperse)
 import Data.List.Index (indexed)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Skylighting.Types (SourceLine, Syntax(sName), Token)
 import Yamte.Attributes (findAttribute)
-import Yamte.Editor (activeMode)
+import Yamte.Editor (activeMode, getDescription, getTrigger)
 import Yamte.Types
   ( Action(..)
   , Buffer(..)
   , Mode(..)
+  , ModifiedKey
   , Resource(..)
   , State(..)
   , Widget'
@@ -107,6 +109,8 @@ drawViewport state =
         , W.vBox lineWidgets
         ]
 
+type Hint = ([ModifiedKey], String)
+
 drawHints :: State -> Widget'
 drawHints state
   | stateShowHints state =
@@ -116,11 +120,19 @@ drawHints state
       (Just (ActionMode _ actions)) -> drawTable actions
   | otherwise = W.emptyWidget
   where
-    drawHint :: Action -> [Widget']
-    drawHint (Action trigger name _) = [W.str $ show trigger, W.str name]
-    drawHint (IOAction trigger name _) = [W.str $ show trigger, W.str name]
+    buildHint :: [Action] -> Hint
+    buildHint actions = (map getTrigger actions, getDescription $ head actions)
+    buildHints :: [Action] -> [Hint]
+    buildHints = map buildHint . groupBy ((==) `on` getDescription)
+    keySeparator :: Widget'
+    keySeparator = W.padLeftRight 1 $ W.vLimit 1 B.vBorder
+    drawHint :: Hint -> [Widget']
+    drawHint (keys, description) =
+      [ W.hBox $ intersperse keySeparator $ map (W.str . show) keys
+      , W.str description
+      ]
     drawTable :: [Action] -> Widget'
-    drawTable actions = WT.renderTable $ WT.table $ map drawHint actions
+    drawTable = WT.renderTable . WT.table . map drawHint . buildHints
 
 drawMessage :: State -> Widget'
 drawMessage = C.hCenter . W.str . stateMessage

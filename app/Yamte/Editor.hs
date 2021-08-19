@@ -6,6 +6,8 @@ module Yamte.Editor
   , enterMode
   , leaveMode
   , standardActions
+  , getTrigger
+  , getDescription
   , handleEvent
   ) where
 
@@ -85,6 +87,10 @@ standardActions = [hintAction, exitAction]
 getTrigger :: Action -> ModifiedKey
 getTrigger (Action trigger _ _) = trigger
 getTrigger (IOAction trigger _ _) = trigger
+
+getDescription :: Action -> String
+getDescription (Action _ description _) = description
+getDescription (IOAction _ description _) = description
 
 findAction :: [Action] -> ModifiedKey -> Maybe Action
 findAction actions trigger =
