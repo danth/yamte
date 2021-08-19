@@ -18,8 +18,8 @@ import Brick.Util (clamp)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as W
-import qualified Brick.Widgets.Table as WT
 import Brick.Widgets.Core ((<+>))
+import qualified Brick.Widgets.Table as WT
 import Data.List (intercalate, intersperse)
 import Data.List.Index (indexed)
 import Data.Maybe (fromMaybe)
@@ -27,7 +27,14 @@ import qualified Data.Text as T
 import Skylighting.Types (SourceLine, Syntax(sName), Token)
 import Yamte.Attributes (findAttribute)
 import Yamte.Editor (activeMode)
-import Yamte.Types (Action(..), Buffer(..), Mode(..), Resource(..), State(..), Widget')
+import Yamte.Types
+  ( Action(..)
+  , Buffer(..)
+  , Mode(..)
+  , Resource(..)
+  , State(..)
+  , Widget'
+  )
 
 modeStatus :: [Mode] -> String
 modeStatus modes =
@@ -103,10 +110,10 @@ drawViewport state =
 drawHints :: State -> Widget'
 drawHints state
   | stateShowHints state =
-      case activeMode state of
-        Nothing -> W.emptyWidget
-        (Just (FunctionMode _ _)) -> W.emptyWidget
-        (Just (ActionMode _ actions)) -> drawTable actions
+    case activeMode state of
+      Nothing -> W.emptyWidget
+      (Just (FunctionMode _ _)) -> W.emptyWidget
+      (Just (ActionMode _ actions)) -> drawTable actions
   | otherwise = W.emptyWidget
   where
     drawHint :: Action -> [Widget']
@@ -114,7 +121,6 @@ drawHints state
     drawHint (IOAction trigger name _) = [W.str $ show trigger, W.str name]
     drawTable :: [Action] -> Widget'
     drawTable actions = WT.renderTable $ WT.table $ map drawHint actions
-
 
 drawMessage :: State -> Widget'
 drawMessage = C.hCenter . W.str . stateMessage

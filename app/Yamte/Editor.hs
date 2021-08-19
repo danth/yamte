@@ -77,10 +77,12 @@ standardActions :: [Action]
 standardActions = [hintAction, exitAction]
   where
     hintAction :: Action
-    hintAction = Action (ModifiedKey (KChar '?') []) "Toggle hints" $
-      \state -> state {stateShowHints = not $ stateShowHints state}
+    hintAction =
+      Action (ModifiedKey (KChar '?') []) "Toggle hints" $ \state ->
+        state {stateShowHints = not $ stateShowHints state}
     exitAction :: Action
-    exitAction = Action (ModifiedKey (KChar 'q') [MCtrl]) "Exit this mode" leaveMode
+    exitAction =
+      Action (ModifiedKey (KChar 'q') [MCtrl]) "Exit this mode" leaveMode
 
 getTrigger :: Action -> ModifiedKey
 getTrigger (Action trigger _ _) = trigger

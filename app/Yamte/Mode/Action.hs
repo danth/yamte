@@ -22,14 +22,28 @@ actions =
   , Action (ModifiedKey KUp []) "Move up one line" moveUp
   , Action (ModifiedKey (KChar 's') []) "Move down one line" moveDown
   , Action (ModifiedKey KDown []) "Move down one line" moveDown
-  , Action (ModifiedKey (KChar 'w') [MCtrl]) "Move to the start of the file" moveTop
-  , Action (ModifiedKey (KChar 's') [MCtrl]) "Move to the end of the file" moveBottom
-  , Action (ModifiedKey (KChar 'a') [MCtrl]) "Move to the start of the line" moveHome
+  , Action
+      (ModifiedKey (KChar 'w') [MCtrl])
+      "Move to the start of the file"
+      moveTop
+  , Action
+      (ModifiedKey (KChar 's') [MCtrl])
+      "Move to the end of the file"
+      moveBottom
+  , Action
+      (ModifiedKey (KChar 'a') [MCtrl])
+      "Move to the start of the line"
+      moveHome
   , Action (ModifiedKey KHome []) "Move to the start of the line" moveHome
-  , Action (ModifiedKey (KChar 'd') [MCtrl]) "Move to the end of the line" moveEnd
+  , Action
+      (ModifiedKey (KChar 'd') [MCtrl])
+      "Move to the end of the line"
+      moveEnd
   , Action (ModifiedKey KEnd []) "Move to the end of the line" moveEnd
-  , Action (ModifiedKey (KChar 'e') []) "Switch to input mode" $ enterMode inputMode
-  , Action (ModifiedKey (KChar 'f') []) "Switch to file mode" $ enterMode fileMode
+  , Action (ModifiedKey (KChar 'e') []) "Switch to input mode" $
+    enterMode inputMode
+  , Action (ModifiedKey (KChar 'f') []) "Switch to file mode" $
+    enterMode fileMode
   ]
 
 actionMode :: Mode
