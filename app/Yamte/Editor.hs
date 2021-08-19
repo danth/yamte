@@ -81,7 +81,7 @@ findAction actions trigger =
   find (\action -> getTrigger action == trigger) actions
 
 runAction :: Maybe Action -> State -> IO ModeResponse
-runAction Nothing = const $ return Propagate
+runAction Nothing = const $ return DoNothing
 runAction (Just (Action _ f)) = return . NewState . f
 runAction (Just (IOAction _ f)) = f >=> return . NewState
 
