@@ -14,14 +14,18 @@ import Yamte.Types (Action(..), Mode(ActionMode), ModifiedKey(..))
 
 actions :: [Action]
 actions =
-  [ Action (ModifiedKey (KChar 'a') []) "Move left one column" moveLeft
-  , Action (ModifiedKey KLeft []) "Move left one column" moveLeft
-  , Action (ModifiedKey (KChar 'd') []) "Move right one column" moveRight
-  , Action (ModifiedKey KRight []) "Move right one column" moveRight
+  [ Action (ModifiedKey (KChar 'e') []) "Switch to input mode" $
+    enterMode inputMode
+  , Action (ModifiedKey (KChar 'f') []) "Switch to file mode" $
+    enterMode fileMode
   , Action (ModifiedKey (KChar 'w') []) "Move up one line" moveUp
   , Action (ModifiedKey KUp []) "Move up one line" moveUp
   , Action (ModifiedKey (KChar 's') []) "Move down one line" moveDown
   , Action (ModifiedKey KDown []) "Move down one line" moveDown
+  , Action (ModifiedKey (KChar 'a') []) "Move left one column" moveLeft
+  , Action (ModifiedKey KLeft []) "Move left one column" moveLeft
+  , Action (ModifiedKey (KChar 'd') []) "Move right one column" moveRight
+  , Action (ModifiedKey KRight []) "Move right one column" moveRight
   , Action
       (ModifiedKey (KChar 'w') [MCtrl])
       "Move to the start of the file"
@@ -40,10 +44,6 @@ actions =
       "Move to the end of the line"
       moveEnd
   , Action (ModifiedKey KEnd []) "Move to the end of the line" moveEnd
-  , Action (ModifiedKey (KChar 'e') []) "Switch to input mode" $
-    enterMode inputMode
-  , Action (ModifiedKey (KChar 'f') []) "Switch to file mode" $
-    enterMode fileMode
   ]
 
 actionMode :: Mode
