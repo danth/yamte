@@ -22,8 +22,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Format code using hindent
-        run: nix run nixpkgs#haskellPackages.hindent -- $(find . -type f -name '*.hs')
+      - name: Format code using Floskell
+        run: nix run nixpkgs#haskellPackages.floskell -- $(find . -type f -name '*.hs')
 
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v7

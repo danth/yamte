@@ -1,0 +1,55 @@
+{
+	"language": "Haskell2010",
+	"extensions": [],
+	"style": "base",
+	"formatting": {
+		"layout": {
+			"app": "flex",
+			"con-decls": "try-oneline",
+			"declaration": "flex",
+			"export-spec-list": "try-oneline",
+			"if": "vertical",
+			"import-spec-list": "try-oneline",
+			"infix-app": "try-oneline",
+			"let": "vertical",
+			"list-comp": "try-oneline",
+			"record": "vertical",
+			"type": "try-oneline"
+		},
+		"indent": {
+			"onside": 2,
+			"deriving": 2,
+			"where": 2,
+			"case": "align-or-indent-by 2",
+			"class": "indent-by 2",
+			"do": "align-or-indent-by 2",
+			"export-spec-list": "indent-by 2",
+			"if": "align",
+			"import-spec-list": "indent-by 2",
+			"let": "align",
+			"let-binds": "align-or-indent-by 2",
+			"let-in": "align-or-indent-by 2",
+			"multi-if": "indent-by 2",
+			"typesig": "align-or-indent-by 2",
+			"where-binds": "align-or-indent-by 2"
+		},
+		"group": {
+			"default": {
+				"spaces": "both",
+				"linebreaks": "after",
+				"force-linebreak": false
+			}
+		},
+		"options": {
+			"align-sum-type-decl": true,
+			"sort-imports": [
+				{
+					"prefixes": [""],
+					"order": "grouped"
+				}
+			],
+			"sort-pragmas": true,
+			"split-language-pragmas": true
+		}
+	}
+}
