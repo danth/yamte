@@ -16,6 +16,8 @@ executable yamte
                  brick ^>= 0.62,
                  data-default-class ^>= 0.1.2.0,
                  ilist ^>= 0.4.0.0,
+                 microlens ^>= 0.4.12.0,
+                 microlens-th ^>= 0.4.3.10,
                  skylighting ^>= 0.11,
                  vty ^>= 5.33
   hs-source-dirs: app

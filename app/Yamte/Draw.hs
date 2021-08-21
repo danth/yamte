@@ -25,16 +25,27 @@ import Data.List (groupBy, intercalate, intersperse)
 import Data.List.Index (indexed)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
+import Lens.Micro ((^.))
 import Skylighting.Types (SourceLine, Syntax(sName), Token)
 import Yamte.Attributes (findAttribute)
 import Yamte.Editor (activeMode, getDescription, getTrigger)
 import Yamte.Types
   ( Action(..)
-  , Buffer(..)
+  , Buffer
+  , filename
+  , touched
+  , text
+  , syntax
+  , highlighted
   , Mode(..)
   , ModifiedKey
   , Resource(..)
-  , State(..)
+  , State
+  , buffer
+  , cursor
+  , showHints
+  , message
+  , modes
   , Widget'
   )
 
@@ -46,16 +57,15 @@ modeStatus modes =
 drawStatus :: State -> Widget'
 drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
   where
-    buffer = stateBuffer state
     elements :: [String]
     elements =
-      [ fromMaybe "[No name]" $ bufferFilename buffer
-      , if bufferTouched buffer
+      [ fromMaybe "[No name]" $ state^.buffer.filename
+      , if state^.buffer.touched
           then "Touched"
           else "Untouched"
-      , show (length $ bufferText buffer) ++ " lines"
-      , modeStatus $ stateModes state
-      , T.unpack (sName $ bufferSyntax buffer) ++ " highlighting"
+      , show (length $ state^.buffer.text) ++ " lines"
+      , modeStatus $ state^.modes
+      , T.unpack (sName $ state^.buffer.syntax) ++ " highlighting"
       ]
     widgets :: [Widget']
     widgets = map W.str elements
@@ -67,10 +77,10 @@ drawViewport state =
   Widget Greedy Greedy $ do
     context <- getContext
     let lines :: [(Int, SourceLine)]
-        lines = indexed $ bufferHighlighted $ stateBuffer state
+        lines = indexed $ state^.buffer.highlighted
         offset :: Int -> Int -> Int
         offset cursorPosition screenSize = cursorPosition - (screenSize `div` 2)
-        (cursorLine, cursorColumn) = stateCursor state
+        (cursorLine, cursorColumn) = state^.cursor
         viewHeight = availHeight context
         viewWidth = availWidth context
         lineOffset =
@@ -113,7 +123,7 @@ type Hint = ([ModifiedKey], String)
 
 drawHints :: State -> Widget'
 drawHints state
-  | stateShowHints state =
+  | state^.showHints =
     case activeMode state of
       Nothing -> W.emptyWidget
       (Just (FunctionMode _ _)) -> W.emptyWidget
@@ -133,7 +143,7 @@ drawHints state
     drawHints = drawTable . map drawHint . buildHints
 
 drawMessage :: State -> Widget'
-drawMessage = C.hCenter . W.str . stateMessage
+drawMessage state = C.hCenter $ W.str $ state^.message
 
 draw :: State -> [Widget']
 draw state = [ui]

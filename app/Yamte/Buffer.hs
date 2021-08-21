@@ -8,20 +8,21 @@ import Data.Default.Class (Default(..))
 import Data.Foldable (toList)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
+import Lens.Micro ((&), (.~), (^.), (?~), (%~))
 import Skylighting (syntaxByName, syntaxesByFilename)
 import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Tokenizer (TokenizerConfig(..), tokenize)
 import Skylighting.Types (SourceLine, Syntax)
 import System.IO (readFile')
-import Yamte.Types (Buffer(..), BufferText)
+import Yamte.Types (Buffer, syntax, text, highlighted, touched, filename, BufferText)
 
 setSyntax :: Buffer -> Buffer
 setSyntax buffer =
-  case bufferFilename buffer of
-    Nothing -> buffer {bufferSyntax = def}
+  case buffer^.filename of
+    Nothing -> buffer & syntax .~ def
     Just filename ->
-      let syntax = head $ syntaxesByFilename defaultSyntaxMap filename
-       in buffer {bufferSyntax = syntax}
+      let fileSyntax = head $ syntaxesByFilename defaultSyntaxMap filename
+       in buffer & syntax .~ fileSyntax
 
 tokenizerConfig :: TokenizerConfig
 tokenizerConfig =
@@ -35,41 +36,38 @@ tokenize' syntax text =
    in throwError $ tokenize tokenizerConfig syntax text
 
 highlight :: Buffer -> Buffer
-highlight buffer =
-  let syntax = bufferSyntax buffer
-      text = bufferToText buffer
-   in buffer {bufferHighlighted = tokenize' syntax text}
+highlight buffer = buffer & highlighted .~ tokenize' (buffer^.syntax) (bufferToText buffer)
 
 modifyBuffer :: (BufferText -> BufferText) -> Buffer -> Buffer
-modifyBuffer f buffer =
-  highlight $ buffer {bufferText = f $ bufferText buffer, bufferTouched = True}
+modifyBuffer f = highlight . (touched .~ True) . (text %~ f)
 
 bufferFromString :: String -> Buffer
 bufferFromString string =
-  let text = S.fromList $ T.lines $ T.pack string
-      text' =
-        if null text
+  let bufferText = S.fromList $ T.lines $ T.pack string
+      bufferText' =
+        if null bufferText
           then S.singleton T.empty
-          else text
-   in def {bufferText = text'}
+          else bufferText
+   in def & text .~ bufferText'
 
 bufferFromFile :: String -> IO Buffer
-bufferFromFile filename = do
-  content <- readFile' filename
-  let buffer = bufferFromString content
-      buffer' = buffer {bufferFilename = Just filename}
-  return $ highlight $ setSyntax buffer'
+bufferFromFile file = do
+  content <- readFile' file
+  return $ bufferFromString content
+         & filename ?~ file
+         & setSyntax
+         & highlight
 
 bufferToText :: Buffer -> T.Text
-bufferToText = T.unlines . toList . bufferText
+bufferToText buffer = T.unlines $ toList $ buffer^.text
 
 bufferToString :: Buffer -> String
 bufferToString = T.unpack . bufferToText
 
 bufferToFile :: Buffer -> IO Buffer
 bufferToFile buffer =
-  case bufferFilename buffer of
+  case buffer^.filename of
     Nothing -> return buffer
     Just filename -> do
       writeFile filename $ bufferToString buffer
-      return $ buffer {bufferTouched = False}
+      return $ buffer & touched .~ False

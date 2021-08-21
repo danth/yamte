@@ -1,12 +1,24 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Yamte.Types
   ( Cursor
   , BufferText
-  , Buffer(..)
+  , Buffer
+  , text
+  , highlighted
+  , syntax
+  , touched
+  , filename
   , ModifiedKey(..)
   , Action(..)
   , Mode(..)
   , ModeResponse(..)
-  , State(..)
+  , State
+  , buffer
+  , message
+  , modes
+  , showHints
+  , cursor
   , Event
   , Event'
   , Resource(..)
@@ -22,6 +34,7 @@ import Graphics.Vty
   ( Key(KBackTab, KChar, KDown, KFun, KLeft, KRight, KUp)
   , Modifier(..)
   )
+import Lens.Micro.TH (makeLenses)
 import Skylighting (syntaxByName)
 import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Types (SourceLine, Syntax)
@@ -38,22 +51,24 @@ type BufferText = S.Seq T.Text
 
 data Buffer =
   Buffer
-    { bufferText :: BufferText
-    , bufferHighlighted :: [SourceLine]
-    , bufferSyntax :: Syntax
-    , bufferTouched :: Bool
-    , bufferFilename :: Maybe String
+    { _text :: BufferText
+    , _highlighted :: [SourceLine]
+    , _syntax :: Syntax
+    , _touched :: Bool
+    , _filename :: Maybe String
     }
 
 instance Default Buffer where
   def =
     Buffer
-      { bufferText = S.singleton T.empty
-      , bufferHighlighted = [[]]
-      , bufferSyntax = def
-      , bufferTouched = False
-      , bufferFilename = Nothing
+      { _text = S.singleton T.empty
+      , _highlighted = [[]]
+      , _syntax = def
+      , _touched = False
+      , _filename = Nothing
       }
+
+makeLenses ''Buffer
 
 data ModifiedKey =
   ModifiedKey Key [Modifier]
@@ -99,22 +114,24 @@ data ModeResponse
 
 data State =
   State
-    { stateBuffer :: Buffer
-    , stateMessage :: String
-    , stateModes :: [Mode]
-    , stateShowHints :: Bool
-    , stateCursor :: Cursor
+    { _buffer :: Buffer
+    , _message :: String
+    , _modes :: [Mode]
+    , _showHints :: Bool
+    , _cursor :: Cursor
     }
 
 instance Default State where
   def =
     State
-      { stateBuffer = def
-      , stateMessage = "Welcome to Yamte!"
-      , stateModes = []
-      , stateShowHints = False
-      , stateCursor = (0, 0)
+      { _buffer = def
+      , _message = "Welcome to Yamte!"
+      , _modes = []
+      , _showHints = False
+      , _cursor = (0, 0)
       }
+
+makeLenses ''State
 
 type Event = ()
 
