@@ -4,8 +4,9 @@ import Brick.BorderMap ( Edges(..) )
 import Brick.Types
   ( Context
   , Location(..)
-  , Padding(Max)
-  , Size(Greedy)
+  , Padding(..)
+  , Result(image)
+  , Size(..)
   , ViewportType(Both)
   , Widget(..)
   , availHeight
@@ -25,6 +26,8 @@ import Data.List ( groupBy, intercalate, intersperse )
 import Data.List.Index ( indexed )
 import Data.Maybe ( fromMaybe )
 import qualified Data.Text as T
+
+import Graphics.Vty.Image (imageWidth)
 
 import Lens.Micro ( (^.), (^..), (^?!), _head, each )
 
@@ -53,6 +56,19 @@ import Yamte.Types
   , syntax
   , touched
   )
+
+padToWidth :: Int -> Widget' -> Widget'
+padToWidth desiredWidth widget = Widget Fixed (vSize widget) $ do
+  result <- render widget
+  let resultWidget :: Widget'
+      resultWidget = Widget Fixed Fixed $ return result
+      actualWidth :: Int
+      actualWidth = imageWidth $ image result
+      finalWidth :: Int
+      finalWidth = max desiredWidth actualWidth
+      padding :: Int
+      padding = finalWidth - actualWidth
+  render $ W.padRight (Pad padding) resultWidget
 
 modeStatus :: [ Mode ] -> String
 modeStatus modes = let modeNames = reverse $ map show modes
@@ -108,8 +124,11 @@ drawViewport' state context = C.vCenter
     columnOffset :: Int
     columnOffset = max 0 $ offset cursorColumn viewWidth
 
+    marginWidth :: Int
+    marginWidth = length (show $ length lines) + 1
+
     drawLineNumber :: Int -> Widget'
-    drawLineNumber lineNumber = W.str $ show $ lineNumber + 1
+    drawLineNumber = padToWidth marginWidth . W.str . show . (+ 1)
 
     drawToken :: Token -> Widget'
     drawToken ( tokenType, tokenText ) = W.withAttr (findAttribute tokenType)
