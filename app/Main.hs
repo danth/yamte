@@ -8,7 +8,8 @@ import System.Environment ( getArgs )
 
 import Yamte.Attributes ( attributes )
 import Yamte.Draw ( draw )
-import Yamte.Editor ( enterMode, handleEvent, loadFile )
+import Yamte.Editor ( enterMode, loadFile )
+import Yamte.Mode ( handleEvent )
 import Yamte.Mode.Action ( actionMode )
 import Yamte.Types ( Event, Resource, State )
 

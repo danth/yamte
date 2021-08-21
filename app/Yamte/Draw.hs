@@ -32,7 +32,8 @@ import Skylighting.Types ( SourceLine, Syntax(sName), Token )
 
 import Yamte.Attributes ( findAttribute )
 import Yamte.Buffer ( text )
-import Yamte.Editor ( activeMode, getDescription, getTrigger )
+import Yamte.Editor ( activeMode )
+import Yamte.Mode ( getDescription, getTrigger )
 import Yamte.Types
   ( Action(..)
   , Buffer

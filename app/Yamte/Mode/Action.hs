@@ -6,7 +6,8 @@ import Graphics.Vty
   )
 
 import Yamte.Cursor
-import Yamte.Editor ( enterMode, standardActions )
+import Yamte.Editor ( enterMode )
+import Yamte.Mode ( standardActions )
 import Yamte.Mode.File ( fileMode )
 import Yamte.Mode.Input ( inputMode )
 import Yamte.Types ( Action(..), Mode(ActionMode), ModifiedKey(..) )
