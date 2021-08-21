@@ -22,5 +22,16 @@ executable yamte
                  vty ^>= 5.33
   hs-source-dirs: app
   main-is: Main.hs
+  other-modules:
+    Yamte.Attributes
+    Yamte.Buffer
+    Yamte.Cursor
+    Yamte.Draw
+    Yamte.Editor
+    Yamte.Mode
+    Yamte.Mode.Action
+    Yamte.Mode.File
+    Yamte.Mode.Input
+    Yamte.Types
   default-language: Haskell2010
   ghc-options: -O -threaded -Wall
