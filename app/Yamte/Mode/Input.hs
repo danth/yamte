@@ -47,7 +47,7 @@ backspace' ( row, 0 ) state
         column' = T.length line
     in state & cursor .~ ( row', column' ) & buffer . text %~ deleteNewline row
 backspace' ( row, column ) state
-  = (moveLeft . (buffer . text %~ S.adjust' (deleteColumn column) row)) state
+  = state & buffer . text %~ S.adjust' (deleteColumn column) row & moveLeft
 
 backspace :: State -> State
 backspace state = backspace' (state ^. cursor) state
@@ -71,9 +71,9 @@ insertCharacter' character ( row, column ) buffer
     in S.update row line' buffer
 
 insertCharacter :: Char -> State -> State
-insertCharacter character state
-  = (moveRight
-     . (buffer . text %~ insertCharacter' character (state ^. cursor))) state
+insertCharacter character state = state
+  & buffer . text %~ insertCharacter' character (state ^. cursor)
+  & moveRight
 
 repeatCall :: Int -> (a -> a) -> (a -> a)
 repeatCall 1 function = function
