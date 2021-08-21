@@ -8,7 +8,7 @@ module Yamte.Mode
 import Brick.Main ( continue, halt )
 import Brick.Types ( BrickEvent(VtyEvent), EventM )
 
-import Control.Monad ( (>=>) )
+import Control.Monad ( (<=<) )
 import Control.Monad.IO.Class ( liftIO )
 
 import Data.List ( find )
@@ -55,7 +55,7 @@ findAction actions trigger = find (\action -> getTrigger action == trigger)
 runAction :: Maybe Action -> State -> IO ModeResponse
 runAction Nothing = const $ return DoNothing
 runAction (Just (Action _ _ f)) = return . NewState . f
-runAction (Just (IOAction _ _ f)) = f >=> return . NewState
+runAction (Just (IOAction _ _ f)) = return . NewState <=< f
 
 handleKey :: Mode -> ModifiedKey -> State -> IO ModeResponse
 handleKey (FunctionMode _ f) = f
