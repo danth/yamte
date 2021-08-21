@@ -21,12 +21,6 @@ import Yamte.Types
   , cursor
   )
 
-modifyStateCursor
-  :: (Cursor -> BufferText -> ( BufferText, Cursor )) -> State -> State
-modifyStateCursor f state
-  = let ( text', cursor' ) = f (state ^. cursor) (state ^. buffer . text)
-    in state & buffer . text .~ text' & cursor .~ cursor'
-
 deleteColumn :: Int -> T.Text -> T.Text
 deleteColumn column line = let ( front, back ) = T.splitAt column line
                            in T.init front `T.append` back
