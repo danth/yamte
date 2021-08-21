@@ -33,27 +33,27 @@ actions
     , Action { _trigger = ModifiedKey (KChar 's') []
              , _description = "Move down one line"
              , _transformation = return . moveDown
-           }
+             }
     , Action { _trigger = ModifiedKey KDown []
              , _description = "Move down one line"
              , _transformation = return . moveDown
-           }
+             }
     , Action { _trigger = ModifiedKey (KChar 'a') []
              , _description = "Move left one column"
              , _transformation = return . moveLeft
-           }
+             }
     , Action { _trigger = ModifiedKey KLeft []
              , _description = "Move left one column"
              , _transformation = return . moveLeft
-           }
+             }
     , Action { _trigger = ModifiedKey (KChar 'd') []
              , _description = "Move right one column"
              , _transformation = return . moveRight
-           }
+             }
     , Action { _trigger = ModifiedKey KRight []
              , _description = "Move right one column"
              , _transformation = return . moveRight
-           }
+             }
     , Action { _trigger = ModifiedKey (KChar 'w') [ MCtrl ]
              , _description = "Move to the start of the file"
              , _transformation = return . moveTop
@@ -69,7 +69,7 @@ actions
     , Action { _trigger = ModifiedKey KHome []
              , _description = "Move to the start of the line"
              , _transformation = return . moveHome
-           }
+             }
     , Action { _trigger = ModifiedKey (KChar 'd') [ MCtrl ]
              , _description = "Move to the end of the line"
              , _transformation = return . moveEnd
@@ -77,7 +77,7 @@ actions
     , Action { _trigger = ModifiedKey KEnd []
              , _description = "Move to the end of the line"
              , _transformation = return . moveEnd
-           }
+             }
     ]
 
 actionMode :: Mode

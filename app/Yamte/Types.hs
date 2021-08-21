@@ -95,11 +95,10 @@ instance Show ModifiedKey where
   show (ModifiedKey key modifiers)
     = concatMap showModifier modifiers ++ showKey key
 
-data Action
-  = Action { _trigger :: ModifiedKey
-           , _description :: String
-           , _transformation :: State -> IO State
-           }
+data Action = Action { _trigger :: ModifiedKey
+                     , _description :: String
+                     , _transformation :: State -> IO State
+                     }
 
 data Mode
   = FunctionMode String (ModifiedKey -> State -> IO ModeResponse)
@@ -138,5 +137,7 @@ type Widget' = Widget Resource
 type EventM' = EventM Resource (Next State)
 
 makeLenses ''Action
+
 makeLenses ''Buffer
+
 makeLenses ''State

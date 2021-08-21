@@ -1,7 +1,4 @@
-module Yamte.Mode
-  ( standardActions
-  , handleEvent
-  ) where
+module Yamte.Mode ( standardActions, handleEvent ) where
 
 import Brick.Main ( continue, halt )
 import Brick.Types ( BrickEvent(VtyEvent), EventM )
@@ -34,22 +31,19 @@ import Yamte.Types
 standardActions :: [ Action ]
 standardActions = [ hintAction, exitAction ]
   where hintAction :: Action
-        hintAction = Action
-          { _trigger = ModifiedKey (KChar '?') []
-          , _description = "Toggle hints"
-          , _transformation = return . (showHints %~ not)
-          }
+        hintAction = Action { _trigger = ModifiedKey (KChar '?') []
+                            , _description = "Toggle hints"
+                            , _transformation = return . (showHints %~ not)
+                            }
 
         exitAction :: Action
-        exitAction = Action
-          { _trigger = ModifiedKey (KChar 'q') [ MCtrl ]
-          , _description = "Exit this mode"
-          , _transformation = return . leaveMode
-          }
+        exitAction = Action { _trigger = ModifiedKey (KChar 'q') [ MCtrl ]
+                            , _description = "Exit this mode"
+                            , _transformation = return . leaveMode
+                            }
 
 findAction :: [ Action ] -> ModifiedKey -> Maybe Action
-findAction actions key = find (\action -> action ^. trigger == key)
-  actions
+findAction actions key = find (\action -> action ^. trigger == key) actions
 
 runAction :: Maybe Action -> State -> IO ModeResponse
 runAction Nothing = const $ return DoNothing

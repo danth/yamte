@@ -11,16 +11,15 @@ leaveAfter operation state = do state' <- operation state
                                 return $ leaveMode state'
 
 actions :: [ Action ]
-actions
-  = [ Action { _trigger = ModifiedKey (KChar 's') []
-             , _description = "Save file"
-             , _transformation = leaveAfter saveFile
-             }
-    , Action { _trigger = ModifiedKey (KChar 'r') []
-             , _description = "Reload file"
-             , _transformation = leaveAfter reloadFile
-             }
-    ]
+actions = [ Action { _trigger = ModifiedKey (KChar 's') []
+                   , _description = "Save file"
+                   , _transformation = leaveAfter saveFile
+                   }
+          , Action { _trigger = ModifiedKey (KChar 'r') []
+                   , _description = "Reload file"
+                   , _transformation = leaveAfter reloadFile
+                   }
+          ]
 
 fileMode :: Mode
 fileMode = ActionMode "File" $ standardActions ++ actions
