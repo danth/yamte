@@ -53,7 +53,7 @@ handleKey (FunctionMode _ f) = f
 handleKey (ActionMode _ actions) = runAction . findAction actions
 
 handleKey' :: [ Mode ] -> ModifiedKey -> State -> IO State
-handleKey' [] key state = return state
+handleKey' [] _ state = return state
 handleKey' (mode : modes) key state = do
   response <- handleKey mode key state
   case response of NewState state' -> return state'

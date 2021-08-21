@@ -59,19 +59,19 @@ moveDown :: State -> State
 moveDown state = move state $ \( row, column ) -> ( row + 1, column )
 
 moveTop :: State -> State
-moveTop state = move state $ \( row, column ) -> ( 0, column )
+moveTop state = move state $ \( _, column ) -> ( 0, column )
 
 moveBottom :: State -> State
-moveBottom state = move state $ \( row, column ) -> ( maxBound, column )
+moveBottom state = move state $ \( _, column ) -> ( maxBound, column )
 
 moveHome :: State -> State
-moveHome state = move state $ \( row, column ) -> ( row, 0 )
+moveHome state = move state $ \( row, _ ) -> ( row, 0 )
 
 moveEnd :: State -> State
-moveEnd state = move state $ \( row, column ) -> ( row, maxBound )
+moveEnd state = move state $ \( row, _ ) -> ( row, maxBound )
 
 moveRow :: Int -> State -> State
-moveRow row' state = move state $ \( row, column ) -> ( row', column )
+moveRow row' state = move state $ \( _, column ) -> ( row', column )
 
 moveColumn :: Int -> State -> State
-moveColumn column' state = move state $ \( row, column ) -> ( row, column' )
+moveColumn column' state = move state $ \( row, _ ) -> ( row, column' )
