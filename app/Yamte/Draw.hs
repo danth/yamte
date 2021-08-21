@@ -38,7 +38,6 @@ import Yamte.Types
   ( Action(..)
   , description
   , trigger
-  , Buffer
   , Mode(..)
   , ModifiedKey
   , Resource(..)
