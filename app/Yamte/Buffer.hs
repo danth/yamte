@@ -48,8 +48,8 @@ highlight buffer = buffer
   & highlighted .~ tokenize' (buffer ^. syntax) (bufferToText buffer)
 
 text :: Lens' Buffer BufferText
-text = lens (^. raw) $
-  \buffer text -> highlight $ buffer & touched .~ True & raw .~ text
+text = lens (^. raw)
+  $ \buffer text -> highlight $ buffer & touched .~ True & raw .~ text
 
 bufferFromString :: String -> Buffer
 bufferFromString string

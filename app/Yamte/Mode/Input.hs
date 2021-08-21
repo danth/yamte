@@ -45,9 +45,7 @@ backspace' ( row, 0 ) state
   = let row' = row - 1
         line = (state ^. buffer . text) `S.index` row'
         column' = T.length line
-    in state
-       & cursor .~ ( row', column' )
-       & buffer . text %~ deleteNewline row
+    in state & cursor .~ ( row', column' ) & buffer . text %~ deleteNewline row
 backspace' ( row, column ) state
   = (moveLeft . (buffer . text %~ S.adjust' (deleteColumn column) row)) state
 
@@ -62,8 +60,8 @@ insertNewline state
         indentation = T.takeWhile (' ' ==) front
         newLine = indentation `T.append` back
     in state
-      & buffer . text %~ S.insertAt (row + 1) newLine . S.update row front
-      & cursor .~ ( row + 1, T.length indentation )
+       & buffer . text %~ S.insertAt (row + 1) newLine . S.update row front
+       & cursor .~ ( row + 1, T.length indentation )
 
 insertCharacter' :: Char -> Cursor -> BufferText -> BufferText
 insertCharacter' character ( row, column ) buffer
@@ -74,8 +72,8 @@ insertCharacter' character ( row, column ) buffer
 
 insertCharacter :: Char -> State -> State
 insertCharacter character state
-  = (moveRight . (buffer . text %~ insertCharacter' character (state ^. cursor)))
-  state
+  = (moveRight
+     . (buffer . text %~ insertCharacter' character (state ^. cursor))) state
 
 repeatCall :: Int -> (a -> a) -> (a -> a)
 repeatCall 1 function = function
