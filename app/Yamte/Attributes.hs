@@ -1,16 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Yamte.Attributes
-  ( attributes
-  , findAttribute
-  ) where
+module Yamte.Attributes ( attributes, findAttribute ) where
 
-import Brick.AttrMap (AttrMap, AttrName, attrMap, attrName)
-import Brick.Util (fg)
+import Brick.AttrMap ( AttrMap, AttrName, attrMap, attrName )
+import Brick.Util ( fg )
+
 import qualified Data.Map as M
-import Graphics.Vty.Attributes (bold, defAttr, withStyle)
+
+import Graphics.Vty.Attributes ( bold, defAttr, withStyle )
 import Graphics.Vty.Attributes.Color
-import Skylighting.Types (TokenType(..))
+
+import Skylighting.Types ( TokenType(..) )
 
 textAttribute :: AttrName
 textAttribute = "text"
@@ -49,56 +49,53 @@ errorAttribute :: AttrName
 errorAttribute = textAttribute <> "error"
 
 attributes :: AttrMap
-attributes =
-  attrMap
-    defAttr
-    [ (textAttribute, fg white)
-    , (keywordAttribute, fg blue)
-    , (builtinAttribute, fg cyan)
-    , (stringAttribute, fg green)
-    , (numericAttribute, fg red)
-    , (identifierAttribute, fg yellow)
-    , (attributeAttribute, fg yellow)
-    , (extensionAttribute, fg magenta)
-    , (commentAttribute, defAttr `withStyle` bold)
-    , (informationAttribute, fg cyan)
-    , (warningAttribute, fg yellow)
-    , (errorAttribute, fg red)
-    ]
+attributes = attrMap defAttr
+  [ ( textAttribute, fg white )
+  , ( keywordAttribute, fg blue )
+  , ( builtinAttribute, fg cyan )
+  , ( stringAttribute, fg green )
+  , ( numericAttribute, fg red )
+  , ( identifierAttribute, fg yellow )
+  , ( attributeAttribute, fg yellow )
+  , ( extensionAttribute, fg magenta )
+  , ( commentAttribute, defAttr `withStyle` bold )
+  , ( informationAttribute, fg cyan )
+  , ( warningAttribute, fg yellow )
+  , ( errorAttribute, fg red )
+  ]
 
 findAttribute :: TokenType -> AttrName
 findAttribute tokenType = M.findWithDefault textAttribute tokenType tokenTypes
   where
     tokenTypes :: M.Map TokenType AttrName
-    tokenTypes =
-      M.fromList
-        [ (ControlFlowTok, keywordAttribute)
-        , (KeywordTok, keywordAttribute)
-        , (BuiltInTok, builtinAttribute)
-        , (OperatorTok, builtinAttribute)
-        , (BaseNTok, numericAttribute)
-        , (DecValTok, numericAttribute)
-        , (FloatTok, numericAttribute)
-        , (SpecialCharTok, numericAttribute)
-        , (CharTok, stringAttribute)
-        , (DataTypeTok, stringAttribute)
-        , (StringTok, stringAttribute)
-        , (SpecialStringTok, stringAttribute)
-        , (VerbatimStringTok, stringAttribute)
-        , (ConstantTok, identifierAttribute)
-        , (FunctionTok, identifierAttribute)
-        , (VariableTok, identifierAttribute)
-        , (AttributeTok, attributeAttribute)
-        , (ExtensionTok, extensionAttribute)
-        , (ImportTok, extensionAttribute)
-        , (PreprocessorTok, extensionAttribute)
-        , (AnnotationTok, commentAttribute)
-        , (CommentTok, commentAttribute)
-        , (CommentVarTok, commentAttribute)
-        , (DocumentationTok, commentAttribute)
-        , (RegionMarkerTok, commentAttribute)
-        , (InformationTok, informationAttribute)
-        , (AlertTok, warningAttribute)
-        , (WarningTok, warningAttribute)
-        , (ErrorTok, errorAttribute)
-        ]
+    tokenTypes = M.fromList
+      [ ( ControlFlowTok, keywordAttribute )
+      , ( KeywordTok, keywordAttribute )
+      , ( BuiltInTok, builtinAttribute )
+      , ( OperatorTok, builtinAttribute )
+      , ( BaseNTok, numericAttribute )
+      , ( DecValTok, numericAttribute )
+      , ( FloatTok, numericAttribute )
+      , ( SpecialCharTok, numericAttribute )
+      , ( CharTok, stringAttribute )
+      , ( DataTypeTok, stringAttribute )
+      , ( StringTok, stringAttribute )
+      , ( SpecialStringTok, stringAttribute )
+      , ( VerbatimStringTok, stringAttribute )
+      , ( ConstantTok, identifierAttribute )
+      , ( FunctionTok, identifierAttribute )
+      , ( VariableTok, identifierAttribute )
+      , ( AttributeTok, attributeAttribute )
+      , ( ExtensionTok, extensionAttribute )
+      , ( ImportTok, extensionAttribute )
+      , ( PreprocessorTok, extensionAttribute )
+      , ( AnnotationTok, commentAttribute )
+      , ( CommentTok, commentAttribute )
+      , ( CommentVarTok, commentAttribute )
+      , ( DocumentationTok, commentAttribute )
+      , ( RegionMarkerTok, commentAttribute )
+      , ( InformationTok, informationAttribute )
+      , ( AlertTok, warningAttribute )
+      , ( WarningTok, warningAttribute )
+      , ( ErrorTok, errorAttribute )
+      ]
