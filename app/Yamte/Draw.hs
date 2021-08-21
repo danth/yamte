@@ -32,21 +32,21 @@ import Yamte.Editor (activeMode, getDescription, getTrigger)
 import Yamte.Types
   ( Action(..)
   , Buffer
-  , filename
-  , touched
-  , text
-  , syntax
-  , highlighted
   , Mode(..)
   , ModifiedKey
   , Resource(..)
   , State
+  , Widget'
   , buffer
   , cursor
-  , showHints
+  , filename
+  , highlighted
   , message
   , modes
-  , Widget'
+  , showHints
+  , syntax
+  , text
+  , touched
   )
 
 modeStatus :: [Mode] -> String
@@ -59,13 +59,13 @@ drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
   where
     elements :: [String]
     elements =
-      [ fromMaybe "[No name]" $ state^.buffer.filename
-      , if state^.buffer.touched
+      [ fromMaybe "[No name]" $ state ^. buffer . filename
+      , if state ^. buffer . touched
           then "Touched"
           else "Untouched"
-      , show (length $ state^.buffer.text) ++ " lines"
-      , modeStatus $ state^.modes
-      , T.unpack (sName $ state^.buffer.syntax) ++ " highlighting"
+      , show (length $ state ^. buffer . text) ++ " lines"
+      , modeStatus $ state ^. modes
+      , T.unpack (sName $ state ^. buffer . syntax) ++ " highlighting"
       ]
     widgets :: [Widget']
     widgets = map W.str elements
@@ -77,10 +77,10 @@ drawViewport state =
   Widget Greedy Greedy $ do
     context <- getContext
     let lines :: [(Int, SourceLine)]
-        lines = indexed $ state^.buffer.highlighted
+        lines = indexed $ state ^. buffer . highlighted
         offset :: Int -> Int -> Int
         offset cursorPosition screenSize = cursorPosition - (screenSize `div` 2)
-        (cursorLine, cursorColumn) = state^.cursor
+        (cursorLine, cursorColumn) = state ^. cursor
         viewHeight = availHeight context
         viewWidth = availWidth context
         lineOffset =
@@ -97,8 +97,7 @@ drawViewport state =
           W.withAttr (findAttribute tokenType) $ W.txt tokenText
         drawLine :: (Int, SourceLine) -> Widget'
         drawLine (lineNumber, tokens) =
-          W.cropLeftBy columnOffset $
-          setCursor $
+          W.cropLeftBy columnOffset $ setCursor $
           case tokens of
             [] -> W.vLimit 1 $ W.fill ' '
             t -> W.hBox $ map drawToken t
@@ -110,9 +109,7 @@ drawViewport state =
                 else id
         lineWidgets :: [Widget']
         lineWidgets = map drawLine visibleLines
-    render $
-      C.vCenter $
-      W.padRight Max $
+    render $ C.vCenter $ W.padRight Max $
       W.hBox
         [ W.vBox lineNumbers
         , W.vLimit (length visibleLines) B.vBorder
@@ -123,7 +120,7 @@ type Hint = ([ModifiedKey], String)
 
 drawHints :: State -> Widget'
 drawHints state
-  | state^.showHints =
+  | state ^. showHints =
     case activeMode state of
       Nothing -> W.emptyWidget
       (Just (FunctionMode _ _)) -> W.emptyWidget
@@ -143,7 +140,7 @@ drawHints state
     drawHints = drawTable . map drawHint . buildHints
 
 drawMessage :: State -> Widget'
-drawMessage state = C.hCenter $ W.str $ state^.message
+drawMessage state = C.hCenter $ W.str $ state ^. message
 
 draw :: State -> [Widget']
 draw state = [ui]

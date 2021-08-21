@@ -6,13 +6,12 @@ import Data.Char (isPrint)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 import Graphics.Vty (Key(KBS, KChar, KDel, KEnter), Modifier(MCtrl))
-import Lens.Micro ((&), (%~), (^.), (.~))
+import Lens.Micro ((%~), (&), (.~), (^.))
 import Yamte.Buffer (modifyBuffer)
 import Yamte.Cursor (moveDown, moveHome, moveLeft, moveRight)
 import Yamte.Editor
 import Yamte.Types
   ( Buffer
-  , text
   , BufferText
   , Cursor
   , Mode(FunctionMode)
@@ -21,6 +20,7 @@ import Yamte.Types
   , State
   , buffer
   , cursor
+  , text
   )
 
 modifyState :: (BufferText -> BufferText) -> State -> State
@@ -29,10 +29,8 @@ modifyState f = buffer %~ modifyBuffer f
 modifyStateCursor ::
      (Cursor -> BufferText -> (BufferText, Cursor)) -> State -> State
 modifyStateCursor f state =
-  let (text', cursor') = f (state^.cursor) (state^.buffer.text)
-   in state
-        & buffer %~ modifyBuffer (const text')
-        & cursor .~ cursor'
+  let (text', cursor') = f (state ^. cursor) (state ^. buffer . text)
+   in state & buffer %~ modifyBuffer (const text') & cursor .~ cursor'
 
 deleteColumn :: Int -> T.Text -> T.Text
 deleteColumn column line =
@@ -49,16 +47,15 @@ backspace' :: Cursor -> State -> State
 backspace' (0, 0) state = state
 backspace' (row, 0) state =
   let row' = row - 1
-      line = (state^.buffer.text) `S.index` row'
+      line = (state ^. buffer . text) `S.index` row'
       column' = T.length line
-   in state
-        & cursor .~ (row', column')
-        & buffer %~ modifyBuffer (deleteNewline row)
+   in state & cursor .~ (row', column') & buffer %~
+      modifyBuffer (deleteNewline row)
 backspace' (row, column) state =
   (moveLeft . modifyState (S.adjust' (deleteColumn column) row)) state
 
 backspace :: State -> State
-backspace state = backspace' (state^.cursor) state
+backspace state = backspace' (state ^. cursor) state
 
 insertNewline' :: Cursor -> BufferText -> (BufferText, Cursor)
 insertNewline' (row, column) buffer =
@@ -81,8 +78,7 @@ insertCharacter' character (row, column) buffer =
 
 insertCharacter :: Char -> State -> State
 insertCharacter character state =
-  (moveRight . modifyState (insertCharacter' character $ state^.cursor))
-    state
+  (moveRight . modifyState (insertCharacter' character $ state ^. cursor)) state
 
 repeatCall :: Int -> (a -> a) -> (a -> a)
 repeatCall 1 function = function

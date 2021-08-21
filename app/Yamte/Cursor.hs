@@ -14,14 +14,14 @@ module Yamte.Cursor
 import Brick.Util (clamp)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Lens.Micro ((^.), (%~), (&))
-import Yamte.Types (Buffer, text, BufferText, Cursor, State, buffer, cursor)
+import Lens.Micro ((%~), (&), (^.))
+import Yamte.Types (Buffer, BufferText, Cursor, State, buffer, cursor, text)
 
 rowLength :: BufferText -> Int -> Int
 rowLength buffer row = T.length $ buffer `S.index` row
 
 rowLength' :: State -> Int -> Int
-rowLength' state = rowLength $ state^.buffer.text
+rowLength' state = rowLength $ state ^. buffer . text
 
 clampCursor :: BufferText -> Cursor -> Cursor
 clampCursor buffer (row, column) =
@@ -30,7 +30,7 @@ clampCursor buffer (row, column) =
    in (row', column')
 
 clampCursor' :: State -> Cursor -> Cursor
-clampCursor' state = clampCursor $ state^.buffer.text
+clampCursor' state = clampCursor $ state ^. buffer . text
 
 move :: State -> (Cursor -> Cursor) -> State
 move state f = state & cursor %~ (clampCursor' state . f)

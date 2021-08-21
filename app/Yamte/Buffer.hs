@@ -8,17 +8,25 @@ import Data.Default.Class (Default(..))
 import Data.Foldable (toList)
 import qualified Data.Sequence as S
 import qualified Data.Text as T
-import Lens.Micro ((&), (.~), (^.), (?~), (%~))
+import Lens.Micro ((%~), (&), (.~), (?~), (^.))
 import Skylighting (syntaxByName, syntaxesByFilename)
 import Skylighting.Syntax (defaultSyntaxMap)
 import Skylighting.Tokenizer (TokenizerConfig(..), tokenize)
 import Skylighting.Types (SourceLine, Syntax)
 import System.IO (readFile')
-import Yamte.Types (Buffer, syntax, text, highlighted, touched, filename, BufferText)
+import Yamte.Types
+  ( Buffer
+  , BufferText
+  , filename
+  , highlighted
+  , syntax
+  , text
+  , touched
+  )
 
 setSyntax :: Buffer -> Buffer
 setSyntax buffer =
-  case buffer^.filename of
+  case buffer ^. filename of
     Nothing -> buffer & syntax .~ def
     Just filename ->
       let fileSyntax = head $ syntaxesByFilename defaultSyntaxMap filename
@@ -36,7 +44,8 @@ tokenize' syntax text =
    in throwError $ tokenize tokenizerConfig syntax text
 
 highlight :: Buffer -> Buffer
-highlight buffer = buffer & highlighted .~ tokenize' (buffer^.syntax) (bufferToText buffer)
+highlight buffer =
+  buffer & highlighted .~ tokenize' (buffer ^. syntax) (bufferToText buffer)
 
 modifyBuffer :: (BufferText -> BufferText) -> Buffer -> Buffer
 modifyBuffer f = highlight . (touched .~ True) . (text %~ f)
@@ -53,20 +62,17 @@ bufferFromString string =
 bufferFromFile :: String -> IO Buffer
 bufferFromFile file = do
   content <- readFile' file
-  return $ bufferFromString content
-         & filename ?~ file
-         & setSyntax
-         & highlight
+  return $ bufferFromString content & filename ?~ file & setSyntax & highlight
 
 bufferToText :: Buffer -> T.Text
-bufferToText buffer = T.unlines $ toList $ buffer^.text
+bufferToText buffer = T.unlines $ toList $ buffer ^. text
 
 bufferToString :: Buffer -> String
 bufferToString = T.unpack . bufferToText
 
 bufferToFile :: Buffer -> IO Buffer
 bufferToFile buffer =
-  case buffer^.filename of
+  case buffer ^. filename of
     Nothing -> return buffer
     Just filename -> do
       writeFile filename $ bufferToString buffer

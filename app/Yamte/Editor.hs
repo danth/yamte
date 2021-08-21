@@ -19,13 +19,12 @@ import Control.Monad.IO.Class (liftIO)
 import Data.List (find)
 import Data.Maybe (listToMaybe)
 import Graphics.Vty (Event(EvKey), Key(KChar), Modifier(MCtrl))
-import Lens.Micro ((&), (^.), (.~), (%~))
+import Lens.Micro ((%~), (&), (.~), (^.))
 import System.IO.Error (isDoesNotExistError)
 import Yamte.Buffer
 import Yamte.Types
   ( Action(..)
   , Buffer
-  , filename
   , Event'
   , EventM'
   , Mode(..)
@@ -33,6 +32,7 @@ import Yamte.Types
   , ModifiedKey(..)
   , State
   , buffer
+  , filename
   , message
   , modes
   , showHints
@@ -45,8 +45,7 @@ loadFile' file state = do
 
 handleError :: IOError -> State -> State
 handleError exception state
-  | isDoesNotExistError exception =
-    state & message .~ "File does not exist."
+  | isDoesNotExistError exception = state & message .~ "File does not exist."
   | otherwise = state & message .~ "Unknown error when loading file."
 
 loadFile :: String -> State -> IO State
@@ -58,20 +57,20 @@ loadFile filename state = do
 
 reloadFile :: State -> IO State
 reloadFile state =
-  case state^.buffer.filename of
+  case state ^. buffer . filename of
     Nothing -> return $ state & message .~ "No file name specified"
     Just filename -> loadFile filename state
 
 saveFile :: State -> IO State
 saveFile state =
-  case state^.buffer.filename of
+  case state ^. buffer . filename of
     Nothing -> return $ state & message .~ "No file name specified"
     Just filename -> do
-      buffer' <- bufferToFile $ state^.buffer
+      buffer' <- bufferToFile $ state ^. buffer
       return $ state & buffer .~ buffer' & message .~ ("Saved " ++ filename)
 
 activeMode :: State -> Maybe Mode
-activeMode state = listToMaybe $ state^.modes
+activeMode state = listToMaybe $ state ^. modes
 
 enterMode :: Mode -> State -> State
 enterMode mode state = state & modes %~ (mode :)
@@ -123,8 +122,8 @@ handleKey' (mode:modes) key state = do
 handleEvent :: State -> Event' -> EventM'
 handleEvent state (VtyEvent (EvKey key modifiers)) = do
   let key' = ModifiedKey key modifiers
-  state' <- liftIO $ handleKey' (state^.modes) key' state
-  case state'^.modes of
+  state' <- liftIO $ handleKey' (state ^. modes) key' state
+  case state' ^. modes of
     [] -> halt state'
     _ -> continue state'
 handleEvent state _ = continue state
