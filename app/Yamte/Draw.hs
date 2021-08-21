@@ -1,13 +1,11 @@
 module Yamte.Draw ( draw ) where
 
-import Brick.BorderMap ( Edges(..) )
 import Brick.Types
   ( Context
   , Location(..)
   , Padding(..)
   , Result(image)
   , Size(..)
-  , ViewportType(Both)
   , Widget(..)
   , availHeight
   , availWidth

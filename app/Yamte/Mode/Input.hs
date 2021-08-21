@@ -4,16 +4,14 @@ import Data.Char ( isPrint )
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 
-import Graphics.Vty ( Key(KBS, KChar, KDel, KEnter), Modifier(MCtrl) )
+import Graphics.Vty ( Key(KBS, KChar, KDel, KEnter) )
 
 import Lens.Micro ( (%~), (&), (.~), (^.) )
 
 import Yamte.Buffer ( text )
-import Yamte.Cursor ( moveDown, moveHome, moveLeft, moveRight )
-import Yamte.Editor
+import Yamte.Cursor ( moveLeft, moveRight )
 import Yamte.Types
-  ( Buffer
-  , BufferText
+  ( BufferText
   , Cursor
   , Mode(FunctionMode)
   , ModeResponse(..)

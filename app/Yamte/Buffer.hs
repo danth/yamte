@@ -5,9 +5,9 @@ import Data.Foldable ( toList )
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 
-import Lens.Micro ( Lens', lens, (%~), (&), (.~), (?~), (^.) )
+import Lens.Micro ( Lens', lens, (&), (.~), (?~), (^.) )
 
-import Skylighting ( syntaxByName, syntaxesByFilename )
+import Skylighting ( syntaxesByFilename )
 import Skylighting.Syntax ( defaultSyntaxMap )
 import Skylighting.Tokenizer ( TokenizerConfig(..), tokenize )
 import Skylighting.Types ( SourceLine, Syntax )

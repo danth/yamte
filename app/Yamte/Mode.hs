@@ -1,7 +1,7 @@
 module Yamte.Mode ( standardActions, handleEvent ) where
 
 import Brick.Main ( continue, halt )
-import Brick.Types ( BrickEvent(VtyEvent), EventM )
+import Brick.Types ( BrickEvent(VtyEvent) )
 
 import Control.Monad ( (<=<) )
 import Control.Monad.IO.Class ( liftIO )
@@ -10,13 +10,12 @@ import Data.List ( find )
 
 import Graphics.Vty ( Event(EvKey), Key(KChar), Modifier(MCtrl) )
 
-import Lens.Micro ( (%~), (&), (.~), (^.) )
+import Lens.Micro ( (%~), (^.) )
 
 import Yamte.Editor ( leaveMode )
 import Yamte.Types
   ( Action(..)
   , trigger
-  , description
   , transformation
   , Event'
   , EventM'

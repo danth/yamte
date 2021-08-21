@@ -2,7 +2,7 @@
 
 module Yamte.Attributes ( attributes, findAttribute ) where
 
-import Brick.AttrMap ( AttrMap, AttrName, attrMap, attrName )
+import Brick.AttrMap ( AttrMap, AttrName, attrMap )
 import Brick.Util ( fg )
 
 import qualified Data.Map as M

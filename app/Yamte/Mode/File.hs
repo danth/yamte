@@ -1,6 +1,6 @@
 module Yamte.Mode.File ( fileMode ) where
 
-import Graphics.Vty ( Key(KChar), Modifier(MCtrl) )
+import Graphics.Vty ( Key(KChar) )
 
 import Yamte.Editor ( leaveMode, reloadFile, saveFile )
 import Yamte.Mode ( standardActions )
