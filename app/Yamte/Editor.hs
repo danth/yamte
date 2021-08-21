@@ -16,15 +16,7 @@ import Lens.Micro ( (%~), (&), (.~), (^.) )
 import System.IO.Error ( isDoesNotExistError )
 
 import Yamte.Buffer
-import Yamte.Types
-  ( Buffer
-  , Mode
-  , State
-  , buffer
-  , filename
-  , message
-  , modes
-  )
+import Yamte.Types ( Buffer, Mode, State, buffer, filename, message, modes )
 
 loadFile' :: String -> State -> IO State
 loadFile' file state = do
