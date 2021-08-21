@@ -11,6 +11,9 @@ module Yamte.Types
   , filename
   , ModifiedKey(..)
   , Action(..)
+  , trigger
+  , description
+  , transformation
   , Mode(..)
   , ModeResponse(..)
   , State
@@ -68,8 +71,6 @@ instance Default Buffer where
                , _filename = Nothing
                }
 
-makeLenses ''Buffer
-
 data ModifiedKey = ModifiedKey Key [ Modifier ]
   deriving ( Eq )
 
@@ -95,8 +96,10 @@ instance Show ModifiedKey where
     = concatMap showModifier modifiers ++ showKey key
 
 data Action
-  = Action ModifiedKey String (State -> State)
-  | IOAction ModifiedKey String (State -> IO State)
+  = Action { _trigger :: ModifiedKey
+           , _description :: String
+           , _transformation :: State -> IO State
+           }
 
 data Mode
   = FunctionMode String (ModifiedKey -> State -> IO ModeResponse)
@@ -123,8 +126,6 @@ instance Default State where
               , _cursor = ( 0, 0 )
               }
 
-makeLenses ''State
-
 type Event = ()
 
 type Event' = BrickEvent Resource Event
@@ -135,3 +136,7 @@ data Resource = FileCursor
 type Widget' = Widget Resource
 
 type EventM' = EventM Resource (Next State)
+
+makeLenses ''Action
+makeLenses ''Buffer
+makeLenses ''State

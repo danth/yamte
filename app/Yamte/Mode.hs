@@ -1,7 +1,5 @@
 module Yamte.Mode
   ( standardActions
-  , getTrigger
-  , getDescription
   , handleEvent
   ) where
 
@@ -15,11 +13,14 @@ import Data.List ( find )
 
 import Graphics.Vty ( Event(EvKey), Key(KChar), Modifier(MCtrl) )
 
-import Lens.Micro ( (%~), (&), (^.) )
+import Lens.Micro ( (%~), (&), (.~), (^.) )
 
 import Yamte.Editor ( leaveMode )
 import Yamte.Types
   ( Action(..)
+  , trigger
+  , description
+  , transformation
   , Event'
   , EventM'
   , Mode(..)
@@ -33,29 +34,26 @@ import Yamte.Types
 standardActions :: [ Action ]
 standardActions = [ hintAction, exitAction ]
   where hintAction :: Action
-        hintAction = Action (ModifiedKey (KChar '?') []) "Toggle hints"
-          $ \state -> state & showHints %~ not
+        hintAction = Action
+          { _trigger = ModifiedKey (KChar '?') []
+          , _description = "Toggle hints"
+          , _transformation = return . (showHints %~ not)
+          }
 
         exitAction :: Action
-        exitAction = Action (ModifiedKey (KChar 'q') [ MCtrl ]) "Exit this mode"
-          leaveMode
-
-getTrigger :: Action -> ModifiedKey
-getTrigger (Action trigger _ _) = trigger
-getTrigger (IOAction trigger _ _) = trigger
-
-getDescription :: Action -> String
-getDescription (Action _ description _) = description
-getDescription (IOAction _ description _) = description
+        exitAction = Action
+          { _trigger = ModifiedKey (KChar 'q') [ MCtrl ]
+          , _description = "Exit this mode"
+          , _transformation = return . leaveMode
+          }
 
 findAction :: [ Action ] -> ModifiedKey -> Maybe Action
-findAction actions trigger = find (\action -> getTrigger action == trigger)
+findAction actions key = find (\action -> action ^. trigger == key)
   actions
 
 runAction :: Maybe Action -> State -> IO ModeResponse
 runAction Nothing = const $ return DoNothing
-runAction (Just (Action _ _ f)) = return . NewState . f
-runAction (Just (IOAction _ _ f)) = return . NewState <=< f
+runAction (Just action) = return . NewState <=< action ^. transformation
 
 handleKey :: Mode -> ModifiedKey -> State -> IO ModeResponse
 handleKey (FunctionMode _ f) = f

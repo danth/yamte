@@ -12,9 +12,14 @@ leaveAfter operation state = do state' <- operation state
 
 actions :: [ Action ]
 actions
-  = [ IOAction (ModifiedKey (KChar 's') []) "Save file" $ leaveAfter saveFile
-    , IOAction (ModifiedKey (KChar 'r') []) "Reload file"
-      $ leaveAfter reloadFile
+  = [ Action { _trigger = ModifiedKey (KChar 's') []
+             , _description = "Save file"
+             , _transformation = leaveAfter saveFile
+             }
+    , Action { _trigger = ModifiedKey (KChar 'r') []
+             , _description = "Reload file"
+             , _transformation = leaveAfter reloadFile
+             }
     ]
 
 fileMode :: Mode

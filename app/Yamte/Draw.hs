@@ -26,16 +26,17 @@ import Data.List.Index ( indexed )
 import Data.Maybe ( fromMaybe )
 import qualified Data.Text as T
 
-import Lens.Micro ( (^.) )
+import Lens.Micro ( (^.), (^..), (^?!), _head, each )
 
 import Skylighting.Types ( SourceLine, Syntax(sName), Token )
 
 import Yamte.Attributes ( findAttribute )
 import Yamte.Buffer ( text )
 import Yamte.Editor ( activeMode )
-import Yamte.Mode ( getDescription, getTrigger )
 import Yamte.Types
   ( Action(..)
+  , description
+  , trigger
   , Buffer
   , Mode(..)
   , ModifiedKey
@@ -149,10 +150,10 @@ drawHints state
   | otherwise = W.emptyWidget
   where buildHint :: [ Action ] -> Hint
         buildHint actions
-          = ( map getTrigger actions, getDescription $ head actions )
+          = ( actions ^.. each . trigger, actions ^?! _head . description )
 
         buildHints :: [ Action ] -> [ Hint ]
-        buildHints = map buildHint . groupBy ((==) `on` getDescription)
+        buildHints = map buildHint . groupBy ((==) `on` (^. description))
 
         drawHint :: Hint -> [ Widget' ]
         drawHint ( keys, description ) = map (W.padLeftRight 1 . W.str)
