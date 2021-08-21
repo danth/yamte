@@ -27,7 +27,7 @@ import Data.List.Index ( indexed )
 import Data.Maybe ( fromMaybe )
 import qualified Data.Text as T
 
-import Graphics.Vty.Image (imageWidth)
+import Graphics.Vty.Image ( imageWidth )
 
 import Lens.Micro ( (^.), (^..), (^?!), _head, each )
 
@@ -58,17 +58,17 @@ import Yamte.Types
   )
 
 padToWidth :: Int -> Widget' -> Widget'
-padToWidth desiredWidth widget = Widget Fixed (vSize widget) $ do
-  result <- render widget
-  let resultWidget :: Widget'
-      resultWidget = Widget Fixed Fixed $ return result
-      actualWidth :: Int
-      actualWidth = imageWidth $ image result
-      finalWidth :: Int
-      finalWidth = max desiredWidth actualWidth
-      padding :: Int
-      padding = finalWidth - actualWidth
-  render $ W.padRight (Pad padding) resultWidget
+padToWidth desiredWidth widget = Widget Fixed (vSize widget)
+  $ do result <- render widget
+       let resultWidget :: Widget'
+           resultWidget = Widget Fixed Fixed $ return result
+           actualWidth :: Int
+           actualWidth = imageWidth $ image result
+           finalWidth :: Int
+           finalWidth = max desiredWidth actualWidth
+           padding :: Int
+           padding = finalWidth - actualWidth
+       render $ W.padRight (Pad padding) resultWidget
 
 modeStatus :: [ Mode ] -> String
 modeStatus modes = let modeNames = reverse $ map show modes
