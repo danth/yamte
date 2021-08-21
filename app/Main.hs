@@ -2,6 +2,8 @@ module Main where
 
 import Brick.Main ( App(..), defaultMain, showFirstCursor )
 
+import Control.Monad ( void )
+
 import Data.Default.Class ( Default(def) )
 
 import System.Environment ( getArgs )
@@ -29,5 +31,4 @@ main = do arguments <- getArgs
           state <- if null arguments
                    then return initialState
                    else loadFile (head arguments) initialState
-          defaultMain app state
-          return ()
+          void $ defaultMain app state
