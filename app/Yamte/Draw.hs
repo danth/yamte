@@ -2,7 +2,8 @@ module Yamte.Draw ( draw ) where
 
 import Brick.BorderMap ( Edges(..) )
 import Brick.Types
-  ( Location(..)
+  ( Context
+  , Location(..)
   , Padding(Max)
   , Size(Greedy)
   , ViewportType(Both)
@@ -74,49 +75,67 @@ drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
     separator :: Widget'
     separator = W.str " • "
 
+drawViewport' :: State -> Context -> Widget'
+drawViewport' state context = C.vCenter
+  $ W.padRight Max
+  $ W.hBox [ W.vBox lineNumbers
+           , W.vLimit (length visibleLines) B.vBorder
+           , W.vBox lineWidgets
+           ]
+  where
+    cursorLine :: Int
+    cursorColumn :: Int
+    ( cursorLine, cursorColumn ) = state ^. cursor
+
+    viewHeight :: Int
+    viewHeight = availHeight context
+
+    viewWidth :: Int
+    viewWidth = availWidth context
+
+    lines :: [ ( Int, SourceLine ) ]
+    lines = indexed $ state ^. buffer . highlighted
+
+    offset :: Int -> Int -> Int
+    offset cursorPosition screenSize = cursorPosition - (screenSize `div` 2)
+
+    lineOffset :: Int
+    lineOffset = clamp 0 (length lines - viewHeight)
+      $ offset cursorLine viewHeight
+
+    columnOffset :: Int
+    columnOffset = max 0 $ offset cursorColumn viewWidth
+
+    drawLineNumber :: Int -> Widget'
+    drawLineNumber lineNumber = W.str $ show $ lineNumber + 1
+
+    drawToken :: Token -> Widget'
+    drawToken ( tokenType, tokenText ) = W.withAttr (findAttribute tokenType)
+      $ W.txt tokenText
+
+    drawLine :: ( Int, SourceLine ) -> Widget'
+    drawLine ( lineNumber, tokens ) = W.cropLeftBy columnOffset
+      $ setCursor
+      $ case tokens of [] -> W.vLimit 1 $ W.fill ' '
+                       t -> W.hBox $ map drawToken t
+      where setCursor :: Widget' -> Widget'
+            setCursor
+              = if lineNumber == cursorLine
+                then W.showCursor FileCursor (Location ( cursorColumn, 0 ))
+                else id
+
+    visibleLines :: [ ( Int, SourceLine ) ]
+    visibleLines = take viewHeight $ drop lineOffset lines
+
+    lineNumbers :: [ Widget' ]
+    lineNumbers = map (drawLineNumber . fst) visibleLines
+
+    lineWidgets :: [ Widget' ]
+    lineWidgets = map drawLine visibleLines
+
 drawViewport :: State -> Widget'
-drawViewport state = Widget Greedy Greedy
-  $ do
-    context <- getContext
-    let lines :: [ ( Int, SourceLine ) ]
-        lines = indexed $ state ^. buffer . highlighted
-        offset :: Int -> Int -> Int
-        offset cursorPosition screenSize = cursorPosition
-          - (screenSize `div` 2)
-        ( cursorLine, cursorColumn ) = state ^. cursor
-        viewHeight = availHeight context
-        viewWidth = availWidth context
-        lineOffset = clamp 0 (length lines - viewHeight)
-          $ offset cursorLine viewHeight
-        columnOffset = max 0 $ offset cursorColumn viewWidth
-        visibleLines :: [ ( Int, SourceLine ) ]
-        visibleLines = take viewHeight $ drop lineOffset lines
-        drawLineNumber :: Int -> Widget'
-        drawLineNumber lineNumber = W.str $ show $ lineNumber + 1
-        lineNumbers :: [ Widget' ]
-        lineNumbers = map (drawLineNumber . fst) visibleLines
-        drawToken :: Token -> Widget'
-        drawToken ( tokenType, tokenText )
-          = W.withAttr (findAttribute tokenType) $ W.txt tokenText
-        drawLine :: ( Int, SourceLine ) -> Widget'
-        drawLine ( lineNumber, tokens ) = W.cropLeftBy columnOffset
-          $ setCursor
-          $ case tokens of [] -> W.vLimit 1 $ W.fill ' '
-                           t -> W.hBox $ map drawToken t
-          where setCursor :: Widget' -> Widget'
-                setCursor
-                  = if lineNumber == cursorLine
-                    then W.showCursor FileCursor (Location ( cursorColumn, 0 ))
-                    else id
-        lineWidgets :: [ Widget' ]
-        lineWidgets = map drawLine visibleLines
-    render
-      $ C.vCenter
-      $ W.padRight Max
-      $ W.hBox [ W.vBox lineNumbers
-               , W.vLimit (length visibleLines) B.vBorder
-               , W.vBox lineWidgets
-               ]
+drawViewport state
+  = Widget Greedy Greedy $ render . drawViewport' state =<< getContext
 
 type Hint = ( [ ModifiedKey ], String )
 
