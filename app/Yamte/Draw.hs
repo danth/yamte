@@ -30,6 +30,7 @@ import Lens.Micro ( (^.) )
 import Skylighting.Types ( SourceLine, Syntax(sName), Token )
 
 import Yamte.Attributes ( findAttribute )
+import Yamte.Buffer ( text )
 import Yamte.Editor ( activeMode, getDescription, getTrigger )
 import Yamte.Types
   ( Action(..)
@@ -47,7 +48,6 @@ import Yamte.Types
   , modes
   , showHints
   , syntax
-  , text
   , touched
   )
 

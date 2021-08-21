@@ -8,7 +8,7 @@ import Graphics.Vty ( Key(KBS, KChar, KDel, KEnter), Modifier(MCtrl) )
 
 import Lens.Micro ( (%~), (&), (.~), (^.) )
 
-import Yamte.Buffer ( modifyBuffer )
+import Yamte.Buffer ( text )
 import Yamte.Cursor ( moveDown, moveHome, moveLeft, moveRight )
 import Yamte.Editor
 import Yamte.Types
@@ -21,17 +21,13 @@ import Yamte.Types
   , State
   , buffer
   , cursor
-  , text
   )
-
-modifyState :: (BufferText -> BufferText) -> State -> State
-modifyState f = buffer %~ modifyBuffer f
 
 modifyStateCursor
   :: (Cursor -> BufferText -> ( BufferText, Cursor )) -> State -> State
 modifyStateCursor f state
   = let ( text', cursor' ) = f (state ^. cursor) (state ^. buffer . text)
-    in state & buffer %~ modifyBuffer (const text') & cursor .~ cursor'
+    in state & buffer . text .~ text' & cursor .~ cursor'
 
 deleteColumn :: Int -> T.Text -> T.Text
 deleteColumn column line = let ( front, back ) = T.splitAt column line
@@ -51,25 +47,23 @@ backspace' ( row, 0 ) state
         column' = T.length line
     in state
        & cursor .~ ( row', column' )
-       & buffer %~ modifyBuffer (deleteNewline row)
+       & buffer . text %~ deleteNewline row
 backspace' ( row, column ) state
-  = (moveLeft . modifyState (S.adjust' (deleteColumn column) row)) state
+  = (moveLeft . (buffer . text %~ S.adjust' (deleteColumn column) row)) state
 
 backspace :: State -> State
 backspace state = backspace' (state ^. cursor) state
 
-insertNewline' :: Cursor -> BufferText -> ( BufferText, Cursor )
-insertNewline' ( row, column ) buffer
-  = let line = buffer `S.index` row
+insertNewline :: State -> State
+insertNewline state
+  = let ( row, column ) = state ^. cursor
+        line = (state ^. buffer . text) `S.index` row
         ( front, back ) = T.splitAt column line
         indentation = T.takeWhile (' ' ==) front
         newLine = indentation `T.append` back
-    in ( S.insertAt (row + 1) newLine $ S.update row front buffer
-       , ( row + 1, T.length indentation )
-       )
-
-insertNewline :: State -> State
-insertNewline = modifyStateCursor insertNewline'
+    in state
+      & buffer . text %~ S.insertAt (row + 1) newLine . S.update row front
+      & cursor .~ ( row + 1, T.length indentation )
 
 insertCharacter' :: Char -> Cursor -> BufferText -> BufferText
 insertCharacter' character ( row, column ) buffer
@@ -80,7 +74,7 @@ insertCharacter' character ( row, column ) buffer
 
 insertCharacter :: Char -> State -> State
 insertCharacter character state
-  = (moveRight . modifyState (insertCharacter' character $ state ^. cursor))
+  = (moveRight . (buffer . text %~ insertCharacter' character (state ^. cursor)))
   state
 
 repeatCall :: Int -> (a -> a) -> (a -> a)

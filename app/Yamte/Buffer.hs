@@ -1,11 +1,11 @@
-module Yamte.Buffer ( bufferFromFile, bufferToFile, modifyBuffer ) where
+module Yamte.Buffer ( bufferFromFile, bufferToFile, text ) where
 
 import Data.Default.Class ( Default(..) )
 import Data.Foldable ( toList )
 import qualified Data.Sequence as S
 import qualified Data.Text as T
 
-import Lens.Micro ( (%~), (&), (.~), (?~), (^.) )
+import Lens.Micro ( Lens', lens, (%~), (&), (.~), (?~), (^.) )
 
 import Skylighting ( syntaxByName, syntaxesByFilename )
 import Skylighting.Syntax ( defaultSyntaxMap )
@@ -20,7 +20,7 @@ import Yamte.Types
   , filename
   , highlighted
   , syntax
-  , text
+  , raw
   , touched
   )
 
@@ -47,8 +47,9 @@ highlight :: Buffer -> Buffer
 highlight buffer = buffer
   & highlighted .~ tokenize' (buffer ^. syntax) (bufferToText buffer)
 
-modifyBuffer :: (BufferText -> BufferText) -> Buffer -> Buffer
-modifyBuffer f = highlight . (touched .~ True) . (text %~ f)
+text :: Lens' Buffer BufferText
+text = lens (^. raw) $
+  \buffer text -> highlight $ buffer & touched .~ True & raw .~ text
 
 bufferFromString :: String -> Buffer
 bufferFromString string
@@ -56,7 +57,7 @@ bufferFromString string
         bufferText' = if null bufferText
                       then S.singleton T.empty
                       else bufferText
-    in def & text .~ bufferText'
+    in def & raw .~ bufferText'
 
 bufferFromFile :: String -> IO Buffer
 bufferFromFile file = do
@@ -64,7 +65,7 @@ bufferFromFile file = do
   return $ bufferFromString content & filename ?~ file & setSyntax & highlight
 
 bufferToText :: Buffer -> T.Text
-bufferToText buffer = T.unlines $ toList $ buffer ^. text
+bufferToText buffer = T.unlines $ toList $ buffer ^. raw
 
 bufferToString :: Buffer -> String
 bufferToString = T.unpack . bufferToText

@@ -4,7 +4,7 @@ module Yamte.Types
   ( Cursor
   , BufferText
   , Buffer
-  , text
+  , raw
   , highlighted
   , syntax
   , touched
@@ -53,7 +53,7 @@ type Cursor = ( Int, Int )
 type BufferText = S.Seq T.Text
 
 data Buffer = Buffer
-  { _text :: BufferText
+  { _raw :: BufferText
   , _highlighted :: [ SourceLine ]
   , _syntax :: Syntax
   , _touched :: Bool
@@ -61,7 +61,7 @@ data Buffer = Buffer
   }
 
 instance Default Buffer where
-  def = Buffer { _text = S.singleton T.empty
+  def = Buffer { _raw = S.singleton T.empty
                , _highlighted = [ [] ]
                , _syntax = def
                , _touched = False

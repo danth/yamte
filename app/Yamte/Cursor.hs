@@ -18,7 +18,8 @@ import qualified Data.Text as T
 
 import Lens.Micro ( (%~), (&), (^.) )
 
-import Yamte.Types ( Buffer, BufferText, Cursor, State, buffer, cursor, text )
+import Yamte.Buffer ( text )
+import Yamte.Types ( Buffer, BufferText, Cursor, State, buffer, cursor )
 
 rowLength :: BufferText -> Int -> Int
 rowLength buffer row = T.length $ buffer `S.index` row
