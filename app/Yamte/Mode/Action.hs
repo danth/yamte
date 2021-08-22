@@ -1,7 +1,8 @@
 module Yamte.Mode.Action ( actionMode ) where
 
 import Graphics.Vty
-  ( Key(KChar, KDown, KEnd, KHome, KLeft, KPageDown, KPageUp, KRight, KUp)
+  ( Key(KChar, KDown, KEnd, KHome, KLeft, KPageDown, KPageUp, KRight,
+    KUp)
   , Modifier(MCtrl)
   )
 

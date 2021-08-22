@@ -82,4 +82,5 @@ moveRows :: Int -> State -> State
 moveRows rows state = move state $ \( row, column ) -> ( row + rows, column )
 
 moveColumns :: Int -> State -> State
-moveColumns columns state = move state $ \( row, column ) -> ( row, column + columns )
+moveColumns columns state
+  = move state $ \( row, column ) -> ( row, column + columns )
