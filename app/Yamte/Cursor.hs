@@ -9,6 +9,8 @@ module Yamte.Cursor
   , moveEnd
   , moveRow
   , moveColumn
+  , moveRows
+  , moveColumns
   ) where
 
 import Brick.Util ( clamp )
@@ -75,3 +77,9 @@ moveRow row' state = move state $ \( _, column ) -> ( row', column )
 
 moveColumn :: Int -> State -> State
 moveColumn column' state = move state $ \( row, _ ) -> ( row, column' )
+
+moveRows :: Int -> State -> State
+moveRows rows state = move state $ \( row, column ) -> ( row + rows, column )
+
+moveColumns :: Int -> State -> State
+moveColumns columns state = move state $ \( row, column ) -> ( row, column + columns )

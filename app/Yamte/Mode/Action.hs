@@ -1,7 +1,7 @@
 module Yamte.Mode.Action ( actionMode ) where
 
 import Graphics.Vty
-  ( Key(KChar, KDown, KEnd, KHome, KLeft, KRight, KUp)
+  ( Key(KChar, KDown, KEnd, KHome, KLeft, KPageDown, KPageUp, KRight, KUp)
   , Modifier(MCtrl)
   )
 
@@ -11,6 +11,9 @@ import Yamte.Mode ( standardActions )
 import Yamte.Mode.File ( fileMode )
 import Yamte.Mode.Input ( inputMode )
 import Yamte.Types ( Action(..), Mode(ActionMode), ModifiedKey(..) )
+
+pageSize :: Int
+pageSize = 25
 
 actions :: [ Action ]
 actions
@@ -53,6 +56,14 @@ actions
     , Action { _trigger = ModifiedKey KRight []
              , _description = "Move right one column"
              , _transformation = return . moveRight
+             }
+    , Action { _trigger = ModifiedKey KPageUp []
+             , _description = "Move up " ++ show pageSize ++ " lines"
+             , _transformation = return . moveRows (-pageSize)
+             }
+    , Action { _trigger = ModifiedKey KPageDown []
+             , _description = "Move down " ++ show pageSize ++ " lines"
+             , _transformation = return . moveRows pageSize
              }
     , Action { _trigger = ModifiedKey (KChar 'w') [ MCtrl ]
              , _description = "Move to the start of the file"
