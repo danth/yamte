@@ -1,7 +1,6 @@
 {
   inputs = {
-    haskell.url = "github:input-output-hk/haskell.nix";
-    nixpkgs.follows = "haskell/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     utils.url = "github:numtide/flake-utils";
     flake-compat = {
       url = "github:edolstra/flake-compat";
@@ -9,30 +8,45 @@
     };
   };
 
-  outputs = { haskell, nixpkgs, utils, ... }:
-    # Cannot support i686-linux as haskell.nix does not support it
-    # Cannot support aarch64-linux due to input-output-hk/haskell.nix#1189
-    utils.lib.eachSystem ["x86_64-linux"]
+  outputs = { nixpkgs, utils, ... }:
+    utils.lib.eachSystem ["aarch64-linux" "i686-linux" "x86_64-linux"]
     (system:
       let
-        overlays = [
-          haskell.overlay
-          (final: prev: {
-            yamte = final.haskell-nix.project' {
-              src = ./.;
-              compiler-nix-name = "ghc901";
-              modules = [{
-                packages.ncurses.components.library.libs =
-                  final.lib.mkForce [ final.ncurses ];
-              }];
-            };
-          })
-        ];
-        pkgs = import nixpkgs { inherit system overlays; };
-        flake = pkgs.yamte.flake {};
-      in rec {
-        inherit (flake) packages apps;
-        defaultPackage = packages."yamte:exe:yamte";
-        defaultApp = apps."yamte:exe:yamte";
+        pkgs = nixpkgs.legacyPackages.${system};
+
+        ghc = pkgs.haskell.packages.ghc901.ghcWithPackages
+          (haskellPackages: with haskellPackages; [
+            brick
+            data-default-class
+            ilist
+            microlens
+            microlens-th
+            skylighting
+            vty
+          ]);
+
+        yamte = pkgs.stdenvNoCC.mkDerivation {
+          name = "yamte";
+          src = ./.;
+          buildInputs = [ ghc ];
+          buildPhase = ''
+            cd app
+            ghc -O -threaded -Wall Main.hs
+          '';
+          installPhase = ''
+            install -D Main $out/bin/yamte
+          '';
+        };
+
+        yamteApp = utils.lib.mkApp {
+          drv = yamte;
+          name = "yamte";
+        };
+
+      in {
+        packages.yamte = yamte;
+        defaultPackage = yamte;
+        apps.yamte = yamteApp;
+        defaultApp = yamteApp;
       });
 }
