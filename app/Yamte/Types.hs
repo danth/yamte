@@ -1,27 +1,27 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Yamte.Types
-  ( Cursor
-  , BufferText
-  , Buffer
-  , raw
-  , highlighted
-  , syntax
-  , touched
-  , filename
-  , ModifiedKey(..)
+  ( ModifiedKey(..)
   , Action(..)
   , trigger
   , description
   , transformation
   , Mode(..)
   , ModeResponse(..)
+  , SyntaxConstruct(..)
+  , render
+  , stringify
+  , AST
   , State
-  , buffer
+  , document
+  , filename
   , message
   , modes
   , showHints
-  , cursor
+  , touched
   , Event
   , Event'
   , Resource(..)
@@ -30,10 +30,10 @@ module Yamte.Types
   ) where
 
 import Brick.Types ( BrickEvent, EventM, Next, Widget )
+import qualified Brick.Widgets.Core as W
 
 import Data.Default.Class ( Default(..) )
-import qualified Data.Sequence as S
-import qualified Data.Text as T
+import Data.Tree ( Tree(..) )
 
 import Graphics.Vty
   ( Key(KBackTab, KChar, KDown, KFun, KLeft, KRight, KUp)
@@ -41,35 +41,6 @@ import Graphics.Vty
   )
 
 import Lens.Micro.TH ( makeLenses )
-
-import Skylighting ( syntaxByName )
-import Skylighting.Syntax ( defaultSyntaxMap )
-import Skylighting.Types ( SourceLine, Syntax )
-
-instance Default Syntax where
-  def = case syntaxByName defaultSyntaxMap (T.pack "Default") of
-    Nothing -> error "Default syntax does not exist"
-    Just syntax -> syntax
-
-type Cursor = ( Int, Int )
-
-type BufferText = S.Seq T.Text
-
-data Buffer = Buffer
-  { _raw :: BufferText
-  , _highlighted :: [ SourceLine ]
-  , _syntax :: Syntax
-  , _touched :: Bool
-  , _filename :: Maybe String
-  }
-
-instance Default Buffer where
-  def = Buffer { _raw = S.singleton T.empty
-               , _highlighted = [ [] ]
-               , _syntax = def
-               , _touched = False
-               , _filename = Nothing
-               }
 
 data ModifiedKey = ModifiedKey Key [ Modifier ]
   deriving ( Eq )
@@ -110,26 +81,36 @@ instance Show Mode where
 
 data ModeResponse = NewState State | Propagate | DoNothing
 
-data State = State { _buffer :: Buffer
+data SyntaxConstruct = SyntaxConstruct { _render :: [Widget'] -> Widget'
+                                       , _stringify :: [String] -> String
+                                       }
+
+type AST = Tree SyntaxConstruct
+
+data State = State { _document :: AST
+                   , _filename :: Maybe String
                    , _message :: String
                    , _modes :: [ Mode ]
                    , _showHints :: Bool
-                   , _cursor :: Cursor
+                   , _touched :: Bool
                    }
 
 instance Default State where
-  def = State { _buffer = def
+  def = State { _document = Node
+                 (SyntaxConstruct { _render = const W.emptyWidget , _stringify = const "" })
+                 []
+              , _filename = Nothing
               , _message = "Welcome to Yamte!"
               , _modes = []
               , _showHints = False
-              , _cursor = ( 0, 0 )
+              , _touched = False
               }
 
 type Event = ()
 
 type Event' = BrickEvent Resource Event
 
-data Resource = FileCursor
+data Resource = MainViewport
   deriving ( Show, Eq, Ord )
 
 type Widget' = Widget Resource
@@ -138,6 +119,6 @@ type EventM' = EventM Resource (Next State)
 
 makeLenses ''Action
 
-makeLenses ''Buffer
+makeLenses ''SyntaxConstruct
 
 makeLenses ''State

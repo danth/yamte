@@ -11,17 +11,35 @@ import Control.Exception ( try )
 
 import Data.Maybe ( listToMaybe )
 
-import Lens.Micro ( (%~), (&), (.~), (^.) )
+import Lens.Micro ( (%~), (&), (.~), (?~), (^.) )
 
+import System.IO ( readFile' )
 import System.IO.Error ( isDoesNotExistError )
 
-import Yamte.Buffer
-import Yamte.Types ( Mode, State, buffer, filename, message, modes )
+import Text.Parsec ( parse )
+
+import Yamte.AST ( stringifyAST )
+import Yamte.Language.Text ( parseDocument )
+import Yamte.Types
+  ( Mode
+  , State
+  , document
+  , filename
+  , message
+  , modes
+  , touched
+  )
 
 loadFile' :: String -> State -> IO State
 loadFile' file state = do
-  fileBuffer <- bufferFromFile file
-  return $ state & buffer .~ fileBuffer & message .~ ("Opened " ++ file)
+  text <- readFile' file
+  return $ state
+         & document .~ case parse parseDocument "" text of
+                         Left err -> error $ show err
+                         Right ast -> ast
+         & filename ?~ file
+         & message .~ ("Opened " ++ file)
+         & touched .~ False
 
 handleError :: IOError -> State -> State
 handleError exception state
@@ -29,23 +47,23 @@ handleError exception state
   | otherwise = state & message .~ "Unknown error when loading file."
 
 loadFile :: String -> State -> IO State
-loadFile filename state = do
-  stateOrException <- try $ loadFile' filename state
+loadFile file state = do
+  stateOrException <- try $ loadFile' file state
   case stateOrException of
     Left exception -> return $ handleError exception state
     Right state' -> return state'
 
 reloadFile :: State -> IO State
-reloadFile state = case state ^. buffer . filename of
+reloadFile state = case state ^. filename of
   Nothing -> return $ state & message .~ "No file name specified"
-  Just filename -> loadFile filename state
+  Just file -> loadFile file state
 
 saveFile :: State -> IO State
-saveFile state = case state ^. buffer . filename of
+saveFile state = case state ^. filename of
   Nothing -> return $ state & message .~ "No file name specified"
-  Just filename -> do
-    buffer' <- bufferToFile $ state ^. buffer
-    return $ state & buffer .~ buffer' & message .~ ("Saved " ++ filename)
+  Just file -> do
+    writeFile file $ stringifyAST $ state ^. document
+    return $ state & message .~ ("Saved " ++ file) & touched .~ False
 
 activeMode :: State -> Maybe Mode
 activeMode state = listToMaybe $ state ^. modes

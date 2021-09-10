@@ -1,16 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Yamte.Attributes ( attributes, findAttribute ) where
+module Yamte.Attributes ( attributes ) where
 
 import Brick.AttrMap ( AttrMap, AttrName, attrMap )
 import Brick.Util ( fg )
 
-import qualified Data.Map as M
-
 import Graphics.Vty.Attributes ( bold, defAttr, withStyle )
 import Graphics.Vty.Attributes.Color
-
-import Skylighting.Types ( TokenType(..) )
 
 textAttribute :: AttrName
 textAttribute = "text"
@@ -63,39 +59,3 @@ attributes = attrMap defAttr
   , ( warningAttribute, fg yellow )
   , ( errorAttribute, fg red )
   ]
-
-findAttribute :: TokenType -> AttrName
-findAttribute tokenType = M.findWithDefault textAttribute tokenType tokenTypes
-  where
-    tokenTypes :: M.Map TokenType AttrName
-    tokenTypes = M.fromList
-      [ ( ControlFlowTok, keywordAttribute )
-      , ( KeywordTok, keywordAttribute )
-      , ( BuiltInTok, builtinAttribute )
-      , ( OperatorTok, builtinAttribute )
-      , ( BaseNTok, numericAttribute )
-      , ( DecValTok, numericAttribute )
-      , ( FloatTok, numericAttribute )
-      , ( SpecialCharTok, numericAttribute )
-      , ( CharTok, stringAttribute )
-      , ( DataTypeTok, stringAttribute )
-      , ( StringTok, stringAttribute )
-      , ( SpecialStringTok, stringAttribute )
-      , ( VerbatimStringTok, stringAttribute )
-      , ( ConstantTok, identifierAttribute )
-      , ( FunctionTok, identifierAttribute )
-      , ( VariableTok, identifierAttribute )
-      , ( AttributeTok, attributeAttribute )
-      , ( ExtensionTok, extensionAttribute )
-      , ( ImportTok, extensionAttribute )
-      , ( PreprocessorTok, extensionAttribute )
-      , ( AnnotationTok, commentAttribute )
-      , ( CommentTok, commentAttribute )
-      , ( CommentVarTok, commentAttribute )
-      , ( DocumentationTok, commentAttribute )
-      , ( RegionMarkerTok, commentAttribute )
-      , ( InformationTok, informationAttribute )
-      , ( AlertTok, warningAttribute )
-      , ( WarningTok, warningAttribute )
-      , ( ErrorTok, errorAttribute )
-      ]

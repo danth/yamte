@@ -18,10 +18,9 @@
           (haskellPackages: with haskellPackages; [
             brick
             data-default-class
-            ilist
             microlens
             microlens-th
-            skylighting
+            parsec
             vty
           ]);
 
