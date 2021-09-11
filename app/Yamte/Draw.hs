@@ -36,20 +36,19 @@ modeStatus modes = let modeNames = reverse $ map show modes
 
 drawStatus :: State -> Widget'
 drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
-  where
-    elements :: [ String ]
-    elements = [ fromMaybe "[No name]" $ state ^. filename
-               , if state ^. touched
-                 then "Touched"
-                 else "Untouched"
-               , modeStatus $ state ^. modes
-               ]
+  where elements :: [ String ]
+        elements = [ fromMaybe "[No name]" $ state ^. filename
+                   , if state ^. touched
+                     then "Touched"
+                     else "Untouched"
+                   , modeStatus $ state ^. modes
+                   ]
 
-    widgets :: [ Widget' ]
-    widgets = map W.str elements
+        widgets :: [ Widget' ]
+        widgets = map W.str elements
 
-    separator :: Widget'
-    separator = W.str " • "
+        separator :: Widget'
+        separator = W.str " • "
 
 drawViewport :: State -> Widget'
 drawViewport state = renderAST $ state ^. document

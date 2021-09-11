@@ -20,26 +20,19 @@ import Text.Parsec ( parse )
 
 import Yamte.AST ( stringifyAST )
 import Yamte.Language.Text ( parseDocument )
-import Yamte.Types
-  ( Mode
-  , State
-  , document
-  , filename
-  , message
-  , modes
-  , touched
-  )
+import Yamte.Types ( Mode, State, document, filename, message, modes, touched )
 
 loadFile' :: String -> State -> IO State
 loadFile' file state = do
   text <- readFile' file
-  return $ state
-         & document .~ case parse parseDocument "" text of
-                         Left err -> error $ show err
-                         Right ast -> ast
-         & filename ?~ file
-         & message .~ ("Opened " ++ file)
-         & touched .~ False
+  return
+    $ state
+    & document
+    .~ case parse parseDocument "" text of Left err -> error $ show err
+                                           Right ast -> ast
+    & filename ?~ file
+    & message .~ ("Opened " ++ file)
+    & touched .~ False
 
 handleError :: IOError -> State -> State
 handleError exception state

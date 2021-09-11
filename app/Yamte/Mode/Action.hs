@@ -13,15 +13,17 @@ import Yamte.Mode.File ( fileMode )
 import Yamte.Types ( Action(..), Mode(ActionMode), ModifiedKey(..) )
 
 actions :: [ Action ]
-actions
-  = {- [ Action { _trigger = ModifiedKey (KChar 'e') []
+actions =
+  {- [ Action { _trigger = ModifiedKey (KChar 'e') []
              , _description = "Switch to input mode"
              , _transformation = return . enterMode inputMode
              } -}
-    [ Action { _trigger = ModifiedKey (KChar 'f') []
-             , _description = "Switch to file mode"
-             , _transformation = return . enterMode fileMode
-             }
+  [ Action { _trigger = ModifiedKey (KChar 'f') []
+           , _description = "Switch to file mode"
+           , _transformation = return . enterMode fileMode
+           }
+  ]
+
     {- , Action { _trigger = ModifiedKey (KChar 'w') []
              , _description = "Step shallower"
              , _transformation = return . stepShallower
@@ -54,7 +56,5 @@ actions
              , _description = "Step forwards"
              , _transformation = return . stepForwards
              } -}
-    ]
-
 actionMode :: Mode
 actionMode = ActionMode "Action" $ standardActions ++ actions

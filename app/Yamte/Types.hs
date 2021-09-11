@@ -1,7 +1,7 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Yamte.Types
   ( ModifiedKey(..)
@@ -81,30 +81,33 @@ instance Show Mode where
 
 data ModeResponse = NewState State | Propagate | DoNothing
 
-data SyntaxConstruct = SyntaxConstruct { _render :: [Widget'] -> Widget'
-                                       , _stringify :: [String] -> String
-                                       }
+data SyntaxConstruct = SyntaxConstruct
+  { _render :: [ Widget' ] -> Widget'
+  , _stringify :: [ String ] -> String
+  }
 
 type AST = Tree SyntaxConstruct
 
-data State = State { _document :: AST
-                   , _filename :: Maybe String
-                   , _message :: String
-                   , _modes :: [ Mode ]
-                   , _showHints :: Bool
-                   , _touched :: Bool
-                   }
+data State = State
+  { _document :: AST
+  , _filename :: Maybe String
+  , _message :: String
+  , _modes :: [ Mode ]
+  , _showHints :: Bool
+  , _touched :: Bool
+  }
 
 instance Default State where
-  def = State { _document = Node
-                 (SyntaxConstruct { _render = const W.emptyWidget , _stringify = const "" })
-                 []
-              , _filename = Nothing
-              , _message = "Welcome to Yamte!"
-              , _modes = []
-              , _showHints = False
-              , _touched = False
-              }
+  def = State
+    { _document = Node (SyntaxConstruct { _render = const W.emptyWidget
+                                        , _stringify = const ""
+                                        }) []
+    , _filename = Nothing
+    , _message = "Welcome to Yamte!"
+    , _modes = []
+    , _showHints = False
+    , _touched = False
+    }
 
 type Event = ()
 
