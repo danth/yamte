@@ -50,7 +50,7 @@ errorAttribute = textAttribute <> "error"
 attributes :: AttrMap
 attributes = attrMap defAttr
   [ ( cursorAttribute, defAttr `withStyle` reverseVideo )
-  -- The following attributes are currently unused
+    -- The following attributes are currently unused
   , ( textAttribute, fg white )
   , ( keywordAttribute, fg blue )
   , ( builtinAttribute, fg cyan )

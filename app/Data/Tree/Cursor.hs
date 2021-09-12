@@ -51,20 +51,18 @@ toTree cursor = wrapAbove (cursor ^. above) $ cursorToNode cursor
 
 data CursorRelativity = IsTarget | InsideTarget | NotTarget
 
-foldCursor :: forall a b. (CursorRelativity -> a -> [b] -> b) -> TreeCursor a -> b
-foldCursor f cursor =
-  foldAbove (cursor ^. above)
-    $ f IsTarget (cursor ^. target)
-    $ foldForest InsideTarget (cursor ^. below)
-
-  where foldForest :: CursorRelativity -> [Tree a] -> [b]
+foldCursor
+  :: forall a b. (CursorRelativity -> a -> [ b ] -> b) -> TreeCursor a -> b
+foldCursor f cursor = foldAbove (cursor ^. above)
+  $ f IsTarget (cursor ^. target)
+  $ foldForest InsideTarget (cursor ^. below)
+  where foldForest :: CursorRelativity -> [ Tree a ] -> [ b ]
         foldForest relativity = map $ foldTree $ f relativity
 
-        foldSplice :: TreeAbove a -> b -> [b]
-        foldSplice above' centre =
-          (foldForest NotTarget $ above' ^. lefts)
-          ++ [ centre ] ++
-          (foldForest NotTarget $ above' ^. rights)
+        foldSplice :: TreeAbove a -> b -> [ b ]
+        foldSplice above' centre = (foldForest NotTarget $ above' ^. lefts)
+          ++ [ centre ]
+          ++ (foldForest NotTarget $ above' ^. rights)
 
         foldAbove :: Maybe (TreeAbove a) -> b -> b
         foldAbove Nothing centre = centre
