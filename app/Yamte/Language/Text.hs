@@ -26,7 +26,7 @@ parseWord = do text <- many1 notSpace <|> many1 space
 parseLine :: (Stream s m Char) => ParsecT s u m AST
 parseLine = Node
   (SyntaxConstruct
-   { _render = \words -> case words of [] -> W.vLimit 1 $ W.fill ' '
+   { _render = \words -> case words of [] -> W.str " "
                                        _ -> W.hBox words
    , _stringify = concat
    })
