@@ -1,6 +1,6 @@
 module Yamte.AST ( renderAST, stringifyAST ) where
 
-import Brick.Widgets.Core ( forceAttr )
+import Brick.Widgets.Core ( forceAttr, visible )
 
 import Data.Tree ( foldTree )
 import Data.Tree.Cursor ( CursorRelativity(..), foldCursor )
@@ -21,7 +21,7 @@ renderAST :: ASTCursor -> Widget'
 renderAST = foldCursor renderNode
   where
     renderNode :: CursorRelativity -> SyntaxConstruct -> [ Widget' ] -> Widget'
-    renderNode IsTarget construct = forceAttr cursorAttribute
+    renderNode IsTarget construct = visible . forceAttr cursorAttribute
       . (construct ^. render)
     renderNode _ construct = construct ^. render
 

@@ -1,5 +1,6 @@
 module Yamte.Draw ( draw ) where
 
+import Brick.Types ( ViewportType(Both) )
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as W
@@ -21,6 +22,7 @@ import Yamte.Types
   , trigger
   , Mode(..)
   , ModifiedKey
+  , Resource(..)
   , State
   , Widget'
   , document
@@ -52,7 +54,7 @@ drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
         separator = W.str " • "
 
 drawViewport :: State -> Widget'
-drawViewport state = renderAST $ state ^. document
+drawViewport state = W.viewport MainViewport Both $ renderAST $ state ^. document
 
 type Hint = ( [ ModifiedKey ], String )
 
