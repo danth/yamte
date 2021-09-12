@@ -21,8 +21,8 @@ renderAST :: ASTCursor -> Widget'
 renderAST = foldCursor renderNode
   where
     renderNode :: CursorRelativity -> SyntaxConstruct -> [ Widget' ] -> Widget'
-    renderNode IsTarget construct = visible . forceAttr cursorAttribute
-      . (construct ^. render)
+    renderNode IsTarget construct
+      = visible . forceAttr cursorAttribute . (construct ^. render)
     renderNode _ construct = construct ^. render
 
 stringifyAST :: AST -> String

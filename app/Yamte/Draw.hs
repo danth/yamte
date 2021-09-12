@@ -54,7 +54,8 @@ drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
         separator = W.str " • "
 
 drawViewport :: State -> Widget'
-drawViewport state = W.viewport MainViewport Both $ renderAST $ state ^. document
+drawViewport state
+  = W.viewport MainViewport Both $ renderAST $ state ^. document
 
 type Hint = ( [ ModifiedKey ], String )
 
