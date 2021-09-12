@@ -117,8 +117,9 @@ moveRight :: TreeCursor a -> Maybe (TreeCursor a)
 moveRight cursor = do
   above' <- cursor ^. above
   rights' <- listToMaybe $ above' ^. rights
-  let above''
-        = above' & lefts %~ (++ [ cursorToNode cursor ]) & rights .~ tail rights'
+  let above'' = above'
+        & lefts %~ (++ [ cursorToNode cursor ])
+        & rights .~ tail rights'
   return
     $ cursor
     & above ?~ above''
