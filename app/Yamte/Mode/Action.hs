@@ -15,6 +15,7 @@ import Yamte.Types ( Action(..), Mode(ActionMode), ModifiedKey(..), document )
 
 (%?) :: ASetter s t a a -> (a -> Maybe a) -> s -> t
 l %? f = over l $ \x -> fromMaybe x (f x)
+
 infixr 4 %?
 
 actions :: [ Action ]
