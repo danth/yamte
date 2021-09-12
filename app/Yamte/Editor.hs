@@ -10,6 +10,7 @@ module Yamte.Editor
 import Control.Exception ( try )
 
 import Data.Maybe ( listToMaybe )
+import Data.Tree.Cursor ( toCursor, toTree )
 
 import Lens.Micro ( (%~), (&), (.~), (?~), (^.) )
 
@@ -29,7 +30,7 @@ loadFile' file state = do
     $ state
     & document
     .~ case parse parseDocument "" text of Left err -> error $ show err
-                                           Right ast -> ast
+                                           Right ast -> toCursor ast
     & filename ?~ file
     & message .~ ("Opened " ++ file)
     & touched .~ False
@@ -55,7 +56,7 @@ saveFile :: State -> IO State
 saveFile state = case state ^. filename of
   Nothing -> return $ state & message .~ "No file name specified"
   Just file -> do
-    writeFile file $ stringifyAST $ state ^. document
+    writeFile file $ stringifyAST $ toTree $ state ^. document
     return $ state & message .~ ("Saved " ++ file) & touched .~ False
 
 activeMode :: State -> Maybe Mode

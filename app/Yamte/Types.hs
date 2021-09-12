@@ -12,6 +12,7 @@ module Yamte.Types
   , render
   , stringify
   , AST
+  , ASTCursor
   , State
   , document
   , filename
@@ -31,6 +32,7 @@ import qualified Brick.Widgets.Core as W
 
 import Data.Default.Class ( Default(..) )
 import Data.Tree ( Tree(..) )
+import Data.Tree.Cursor ( TreeCursor, toCursor )
 
 import Graphics.Vty
   ( Key(KBackTab, KChar, KDown, KFun, KLeft, KRight, KUp)
@@ -85,8 +87,10 @@ data SyntaxConstruct = SyntaxConstruct
 
 type AST = Tree SyntaxConstruct
 
+type ASTCursor = TreeCursor SyntaxConstruct
+
 data State = State
-  { _document :: AST
+  { _document :: ASTCursor
   , _filename :: Maybe String
   , _message :: String
   , _modes :: [ Mode ]
@@ -96,7 +100,8 @@ data State = State
 
 instance Default State where
   def = State
-    { _document = Node (SyntaxConstruct { _render = const W.emptyWidget
+    { _document = toCursor $
+                  Node (SyntaxConstruct { _render = const W.emptyWidget
                                         , _stringify = const ""
                                         }) []
     , _filename = Nothing

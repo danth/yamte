@@ -9,6 +9,7 @@ import qualified Brick.Widgets.Table as WT
 import Data.Function ( on )
 import Data.List ( groupBy, intercalate, intersperse )
 import Data.Maybe ( fromMaybe )
+import Data.Tree.Cursor ( toTree )
 
 import Lens.Micro ( (^.), (^..), (^?!), _head, each )
 
@@ -51,7 +52,7 @@ drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
         separator = W.str " • "
 
 drawViewport :: State -> Widget'
-drawViewport state = renderAST $ state ^. document
+drawViewport state = renderAST $ toTree $ state ^. document
 
 type Hint = ( [ ModifiedKey ], String )
 
