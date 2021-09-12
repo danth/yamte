@@ -1,16 +1,19 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Data.Tree.Cursor
   ( TreeCursor
   , toTree
   , toCursor
+  , CursorRelativity(..)
+  , foldCursor
   , moveUp
   , moveDown
   , moveLeft
   , moveRight
   ) where
 
-import Data.Tree ( Tree(Node, rootLabel, subForest) )
+import Data.Tree ( Tree(Node, rootLabel, subForest), foldTree )
 
 import Lens.Micro ( (^.), (&), (%~), (.~), (?~) )
 import Lens.Micro.TH ( makeLenses )
@@ -38,13 +41,35 @@ cursorToNode cursor = Node (cursor ^. target) (cursor ^. below)
 splice :: TreeAbove a -> Tree a -> [ Tree a ]
 splice above' centre = (above' ^. lefts) ++ [ centre ] ++ (above' ^. rights)
 
-toTree :: TreeCursor a -> Tree a
+toTree :: forall a. TreeCursor a -> Tree a
 toTree cursor = wrapAbove (cursor ^. above) $ cursorToNode cursor
   where wrapAbove :: Maybe (TreeAbove a) -> Tree a -> Tree a
         wrapAbove Nothing centre = centre
         wrapAbove (Just above') centre = wrapAbove (above' ^. parent)
           $ Node (above' ^. self)
           $ splice above' centre
+
+data CursorRelativity = IsTarget | InsideTarget | NotTarget
+
+foldCursor :: forall a b. (CursorRelativity -> a -> [b] -> b) -> TreeCursor a -> b
+foldCursor f cursor =
+  foldAbove (cursor ^. above)
+    $ f IsTarget (cursor ^. target)
+    $ foldForest InsideTarget (cursor ^. below)
+
+  where foldForest :: CursorRelativity -> [Tree a] -> [b]
+        foldForest relativity = map $ foldTree $ f relativity
+
+        foldSplice :: TreeAbove a -> b -> [b]
+        foldSplice above' centre =
+          (foldForest NotTarget $ above' ^. lefts)
+          ++ [ centre ] ++
+          (foldForest NotTarget $ above' ^. rights)
+
+        foldAbove :: Maybe (TreeAbove a) -> b -> b
+        foldAbove Nothing centre = centre
+        foldAbove (Just above') centre = foldAbove (above' ^. parent)
+          $ f NotTarget (above' ^. self) (foldSplice above' centre)
 
 toCursor :: Tree a -> TreeCursor a
 toCursor tree = TreeCursor { _above = Nothing

@@ -52,7 +52,7 @@ drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
         separator = W.str " • "
 
 drawViewport :: State -> Widget'
-drawViewport state = renderAST $ toTree $ state ^. document
+drawViewport state = renderAST $ state ^. document
 
 type Hint = ( [ ModifiedKey ], String )
 

@@ -1,12 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Yamte.Attributes ( attributes ) where
+module Yamte.Attributes ( attributes, cursorAttribute ) where
 
 import Brick.AttrMap ( AttrMap, AttrName, attrMap )
 import Brick.Util ( fg )
 
-import Graphics.Vty.Attributes ( bold, defAttr, withStyle )
+import Graphics.Vty.Attributes ( bold, defAttr, withStyle, reverseVideo )
 import Graphics.Vty.Attributes.Color
+
+cursorAttribute :: AttrName
+cursorAttribute = "cursor"
 
 textAttribute :: AttrName
 textAttribute = "text"
@@ -46,7 +49,9 @@ errorAttribute = textAttribute <> "error"
 
 attributes :: AttrMap
 attributes = attrMap defAttr
-  [ ( textAttribute, fg white )
+  [ ( cursorAttribute, defAttr `withStyle` reverseVideo )
+  -- The following attributes are currently unused
+  , ( textAttribute, fg white )
   , ( keywordAttribute, fg blue )
   , ( builtinAttribute, fg cyan )
   , ( stringAttribute, fg green )
