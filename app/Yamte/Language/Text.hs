@@ -25,11 +25,10 @@ parseWord = do text <- many1 notSpace <|> many1 space
 
 parseLine :: (Stream s m Char) => ParsecT s u m AST
 parseLine = Node
-  (SyntaxConstruct
-   { _render = \words -> case words of [] -> W.str " "
-                                       _ -> W.hBox words
-   , _stringify = concat
-   })
+  (SyntaxConstruct { _render = \words -> case words of [] -> W.str " "
+                                                       _ -> W.hBox words
+                   , _stringify = concat
+                   })
   <$> manyTill parseWord newline
 
 parseDocument :: (Stream s m Char) => ParsecT s u m AST
