@@ -10,7 +10,6 @@ import qualified Brick.Widgets.Table as WT
 import Data.Function ( on )
 import Data.List ( groupBy, intercalate, intersperse )
 import Data.Maybe ( fromMaybe )
-import Data.Tree.Cursor ( toTree )
 
 import Lens.Micro ( (^.), (^..), (^?!), _head, each )
 
