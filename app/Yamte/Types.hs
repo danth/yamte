@@ -103,17 +103,18 @@ data State = State
   }
 
 instance Default State where
-  def = State { _document = toCursor
-                  $ Node (SyntaxConstruct { _render = const W.emptyWidget
-                                          , _stringify = const ""
-                                          , _parser = fail "Cannot modify empty document"
-                                          }) []
-              , _filename = Nothing
-              , _message = "Welcome to Yamte!"
-              , _modes = []
-              , _showHints = False
-              , _touched = False
-              }
+  def = State
+    { _document = toCursor
+        $ Node (SyntaxConstruct { _render = const W.emptyWidget
+                                , _stringify = const ""
+                                , _parser = fail "Cannot modify empty document"
+                                }) []
+    , _filename = Nothing
+    , _message = "Welcome to Yamte!"
+    , _modes = []
+    , _showHints = False
+    , _touched = False
+    }
 
 type Event = ()
 

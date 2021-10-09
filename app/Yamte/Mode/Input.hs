@@ -22,14 +22,13 @@ import Yamte.Types
   )
 
 parseText :: AST -> String -> AST
-parseText originalAST text =
-  case parse (originalAST ^. to rootLabel . parser) "" text of
-    Left _ -> originalAST
-    Right newAST -> newAST
+parseText originalAST text = case parse (originalAST ^. to rootLabel . parser)
+  "" text of Left _ -> originalAST
+             Right newAST -> newAST
 
 modifyText :: (String -> String) -> State -> State
-modifyText f = document %~ modifyTarget
-  (\ast -> parseText ast (f $ stringifyAST ast))
+modifyText f = document
+  %~ modifyTarget (\ast -> parseText ast (f $ stringifyAST ast))
 
 backspace :: State -> State
 backspace = modifyText init
@@ -38,7 +37,7 @@ insertText :: String -> State -> State
 insertText text = modifyText (++ text)
 
 insertCharacter :: Char -> State -> State
-insertCharacter character = insertText [character]
+insertCharacter character = insertText [ character ]
 
 handleTrigger :: ModifiedKey -> State -> ModeResponse
 handleTrigger (ModifiedKey KBS []) = NewState . backspace

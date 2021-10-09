@@ -77,8 +77,8 @@ toCursor tree = TreeCursor { _above = Nothing
                            }
 
 modifyTarget :: (Tree a -> Tree a) -> TreeCursor a -> TreeCursor a
-modifyTarget f cursor = cursor & target .~ rootLabel newTree
-                               & below .~ subForest newTree
+modifyTarget f cursor
+  = cursor & target .~ rootLabel newTree & below .~ subForest newTree
   where newTree = f $ cursorToNode cursor
 
 listToMaybe :: [ a ] -> Maybe [ a ]
