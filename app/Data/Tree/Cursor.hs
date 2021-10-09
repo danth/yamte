@@ -5,6 +5,7 @@ module Data.Tree.Cursor
   ( TreeCursor
   , toTree
   , toCursor
+  , modifyTarget
   , CursorRelativity(..)
   , foldCursor
   , moveUp
@@ -74,6 +75,11 @@ toCursor tree = TreeCursor { _above = Nothing
                            , _target = rootLabel tree
                            , _below = subForest tree
                            }
+
+modifyTarget :: (Tree a -> Tree a) -> TreeCursor a -> TreeCursor a
+modifyTarget f cursor = cursor & target .~ rootLabel newTree
+                               & below .~ subForest newTree
+  where newTree = f $ cursorToNode cursor
 
 listToMaybe :: [ a ] -> Maybe [ a ]
 listToMaybe [] = Nothing

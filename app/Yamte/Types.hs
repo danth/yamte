@@ -11,6 +11,7 @@ module Yamte.Types
   , SyntaxConstruct(..)
   , render
   , stringify
+  , parser
   , AST
   , ASTCursor
   , State
@@ -40,6 +41,8 @@ import Graphics.Vty
   )
 
 import Lens.Micro.TH ( makeLenses )
+
+import Text.Parsec ( Parsec )
 
 data ModifiedKey = ModifiedKey Key [ Modifier ]
   deriving ( Eq )
@@ -83,6 +86,7 @@ data ModeResponse = NewState State | Propagate | DoNothing
 data SyntaxConstruct = SyntaxConstruct
   { _render :: [ Widget' ] -> Widget'
   , _stringify :: [ String ] -> String
+  , _parser :: Parsec String () AST
   }
 
 type AST = Tree SyntaxConstruct
@@ -102,6 +106,7 @@ instance Default State where
   def = State { _document = toCursor
                   $ Node (SyntaxConstruct { _render = const W.emptyWidget
                                           , _stringify = const ""
+                                          , _parser = fail "Cannot modify empty document"
                                           }) []
               , _filename = Nothing
               , _message = "Welcome to Yamte!"
