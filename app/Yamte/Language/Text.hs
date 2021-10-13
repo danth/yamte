@@ -8,10 +8,13 @@ import qualified Brick.Widgets.Core as W
 import Data.Char ( isSpace )
 import Data.Tree ( Tree(..) )
 
-import Text.Parsec ( ParsecT, Stream, (<|>), many, many1, manyTill )
-import Text.Parsec.Char ( newline, satisfy, space )
+import Text.Parsec ( ParsecT, Stream, (<|>), many, many1, sepEndBy )
+import Text.Parsec.Char ( newline, satisfy )
 
 import Yamte.Types ( AST, SyntaxConstruct(..) )
+
+space :: (Stream s m Char) => ParsecT s u m Char
+space = satisfy (\c -> isSpace c && (c /= '\r') && (c /= '\n'))
 
 notSpace :: (Stream s m Char) => ParsecT s u m Char
 notSpace = satisfy (not . isSpace)
@@ -31,11 +34,11 @@ parseLine = Node
                    , _stringify = concat
                    , _parser = parseLine
                    })
-  <$> manyTill parseWord newline
+  <$> many parseWord
 
 parseDocument :: (Stream s m Char) => ParsecT s u m AST
 parseDocument = Node (SyntaxConstruct { _render = W.vBox
                                       , _stringify = unlines
                                       , _parser = parseDocument
                                       })
-  <$> many parseLine
+  <$> parseLine `sepEndBy` newline
