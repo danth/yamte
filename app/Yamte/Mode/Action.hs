@@ -10,7 +10,7 @@ import Lens.Micro ( ASetter, over )
 import Yamte.Editor ( enterMode )
 import Yamte.Mode ( standardActions )
 import Yamte.Mode.File ( fileMode )
-import Yamte.Mode.Input ( inputMode )
+import Yamte.Mode.Input ( InputType(..), beginInput )
 import Yamte.Types ( Action(..), Mode(ActionMode), ModifiedKey(..), document )
 
 (%?) :: ASetter s t a a -> (a -> Maybe a) -> s -> t
@@ -21,8 +21,12 @@ infixr 4 %?
 actions :: [ Action ]
 actions
   = [ Action { _trigger = ModifiedKey (KChar 'e') []
-             , _description = "Switch to input mode"
-             , _transformation = return . enterMode inputMode
+             , _description = "Overwrite the current selection"
+             , _transformation = return . beginInput Overwrite
+             }
+    , Action { _trigger = ModifiedKey (KChar 'E') []
+             , _description = "Edit the current selection"
+             , _transformation = return . beginInput Edit
              }
     , Action { _trigger = ModifiedKey (KChar 'f') []
              , _description = "Switch to file mode"

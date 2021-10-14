@@ -1,4 +1,4 @@
-module Yamte.Mode.Input ( inputMode ) where
+module Yamte.Mode.Input ( inputMode, InputType(..), beginInput ) where
 
 import Data.Char ( isPrint )
 import Data.Tree ( Tree(rootLabel) )
@@ -11,6 +11,7 @@ import Lens.Micro ( (%~), (^.), to )
 import Text.Parsec ( parse )
 
 import Yamte.AST ( stringifyAST )
+import Yamte.Editor ( enterMode )
 import Yamte.Types
   ( AST
   , Mode(FunctionMode)
@@ -55,3 +56,9 @@ handleTrigger' trigger state = return $ handleTrigger trigger state
 
 inputMode :: Mode
 inputMode = FunctionMode "Input" handleTrigger'
+
+data InputType = Edit | Overwrite
+
+beginInput :: InputType -> State -> State
+beginInput Edit = enterMode inputMode
+beginInput Overwrite = enterMode inputMode . modifyText (const "")
