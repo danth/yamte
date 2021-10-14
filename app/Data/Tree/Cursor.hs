@@ -5,7 +5,7 @@ module Data.Tree.Cursor
   ( TreeCursor
   , toTree
   , toCursor
-  , modifyTarget
+  , selection
   , CursorRelativity(..)
   , foldCursor
   , moveUp
@@ -16,7 +16,7 @@ module Data.Tree.Cursor
 
 import Data.Tree ( Tree(Node, rootLabel, subForest), foldTree )
 
-import Lens.Micro ( (^.), (&), (%~), (.~), (?~) )
+import Lens.Micro ( Lens', (^.), (&), (%~), (.~), (?~), lens )
 import Lens.Micro.TH ( makeLenses )
 
 data TreeAbove a = TreeAbove
@@ -36,14 +36,11 @@ makeLenses ''TreeAbove
 
 makeLenses ''TreeCursor
 
-cursorToNode :: TreeCursor a -> Tree a
-cursorToNode cursor = Node (cursor ^. target) (cursor ^. below)
-
 splice :: TreeAbove a -> Tree a -> [ Tree a ]
 splice above' centre = (above' ^. lefts) ++ [ centre ] ++ (above' ^. rights)
 
 toTree :: forall a. TreeCursor a -> Tree a
-toTree cursor = wrapAbove (cursor ^. above) $ cursorToNode cursor
+toTree cursor = wrapAbove (cursor ^. above) (cursor ^. selection)
   where wrapAbove :: Maybe (TreeAbove a) -> Tree a -> Tree a
         wrapAbove Nothing centre = centre
         wrapAbove (Just above') centre = wrapAbove (above' ^. parent)
@@ -76,10 +73,15 @@ toCursor tree = TreeCursor { _above = Nothing
                            , _below = subForest tree
                            }
 
-modifyTarget :: (Tree a -> Tree a) -> TreeCursor a -> TreeCursor a
-modifyTarget f cursor
-  = cursor & target .~ rootLabel newTree & below .~ subForest newTree
-  where newTree = f $ cursorToNode cursor
+selection :: forall a. Lens' (TreeCursor a) (Tree a)
+selection = lens getSelection setSelection
+  where getSelection :: TreeCursor a -> Tree a
+        getSelection cursor = Node (cursor ^. target) (cursor ^. below)
+
+        setSelection :: TreeCursor a -> Tree a -> TreeCursor a
+        setSelection cursor tree = cursor
+                                 & target .~ rootLabel tree
+                                 & below .~ subForest tree
 
 listToMaybe :: [ a ] -> Maybe [ a ]
 listToMaybe [] = Nothing
@@ -105,14 +107,14 @@ moveUp cursor = do above' <- cursor ^. above
                      $ cursor
                      & above .~ (above' ^. parent)
                      & target .~ (above' ^. self)
-                     & below .~ splice above' (cursorToNode cursor)
+                     & below .~ splice above' (cursor ^. selection)
 
 moveLeft :: TreeCursor a -> Maybe (TreeCursor a)
 moveLeft cursor = do
   above' <- cursor ^. above
   lefts' <- listToMaybe $ above' ^. lefts
   let above''
-        = above' & lefts .~ init lefts' & rights %~ (cursorToNode cursor :)
+        = above' & lefts .~ init lefts' & rights %~ ((cursor ^. selection) :)
   return
     $ cursor
     & above ?~ above''
@@ -124,7 +126,7 @@ moveRight cursor = do
   above' <- cursor ^. above
   rights' <- listToMaybe $ above' ^. rights
   let above'' = above'
-        & lefts %~ (++ [ cursorToNode cursor ])
+        & lefts %~ (++ [ cursor ^. selection ])
         & rights .~ tail rights'
   return
     $ cursor

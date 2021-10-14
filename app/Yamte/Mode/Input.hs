@@ -2,7 +2,7 @@ module Yamte.Mode.Input ( inputMode ) where
 
 import Data.Char ( isPrint )
 import Data.Tree ( Tree(rootLabel) )
-import Data.Tree.Cursor ( modifyTarget )
+import Data.Tree.Cursor ( selection )
 
 import Graphics.Vty ( Key(KBS, KChar, KDel, KEnter) )
 
@@ -27,8 +27,8 @@ parseText originalAST text = case parse (originalAST ^. to rootLabel . parser)
              Right newAST -> newAST
 
 modifyText :: (String -> String) -> State -> State
-modifyText f = document
-  %~ modifyTarget (\ast -> parseText ast (f $ stringifyAST ast))
+modifyText f = document . selection
+  %~ (\ast -> parseText ast (f $ stringifyAST ast))
 
 backspace :: State -> State
 backspace = modifyText init
