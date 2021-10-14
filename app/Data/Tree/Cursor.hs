@@ -79,9 +79,8 @@ selection = lens getSelection setSelection
         getSelection cursor = Node (cursor ^. target) (cursor ^. below)
 
         setSelection :: TreeCursor a -> Tree a -> TreeCursor a
-        setSelection cursor tree = cursor
-                                 & target .~ rootLabel tree
-                                 & below .~ subForest tree
+        setSelection cursor tree
+          = cursor & target .~ rootLabel tree & below .~ subForest tree
 
 listToMaybe :: [ a ] -> Maybe [ a ]
 listToMaybe [] = Nothing
