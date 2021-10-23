@@ -40,7 +40,9 @@ drawFilename state = W.padLeftRight 1 $ W.str $ file ++ flag
         file = fromMaybe "[No name]" $ state ^. filename
 
         flag :: String
-        flag = if state ^. touched then " *" else ""
+        flag = if state ^. touched
+               then " *"
+               else ""
 
 drawMessage :: State -> Widget'
 drawMessage state = W.padAll 1 $ W.strWrap $ state ^. message
@@ -61,37 +63,37 @@ buildHints = map buildHint . groupBy ((==) `on` (^. description))
 
 drawHints :: [ Hint ] -> Widget'
 drawHints [] = C.hCenter $ W.str "No hints available"
-drawHints hints
-  = W.hBox [ W.vBox $ map (W.str . unwords . map show . fst) hints
-           , W.vLimit (length hints) $ W.padLeftRight 1 B.vBorder
-           , W.vBox $ map (W.str . snd) hints
-           ]
+drawHints hints = W.hBox
+  [ W.vBox $ map (W.str . unwords . map show . fst) hints
+  , W.vLimit (length hints) $ W.padLeftRight 1 B.vBorder
+  , W.vBox $ map (W.str . snd) hints
+  ]
 
 drawHints' :: State -> Widget'
 drawHints' = drawHints . buildHints . getActions
 
 modeName :: State -> String
 modeName state = intercalate " → " modeNames ++ " mode"
-  where modeNames :: [String]
+  where modeNames :: [ String ]
         modeNames = reverse $ map show $ state ^. modes
 
 drawMode :: State -> Widget'
 drawMode state = W.joinBorders
-               $ B.border
-               $ W.vBox [ C.hCenter $ W.str $ modeName state
-                        , B.hBorder
-                        , W.padLeftRight 1 $ drawHints' state
-                        ]
+  $ B.border
+  $ W.vBox [ C.hCenter $ W.str $ modeName state
+           , B.hBorder
+           , W.padLeftRight 1 $ drawHints' state
+           ]
 
 draw :: State -> [ Widget' ]
 draw state = [ ui ]
-  where ui :: Widget'
-        ui = page <+> sidebar
+  where
+    ui :: Widget'
+    ui = page <+> sidebar
 
-        page :: Widget'
-        page = B.borderWithLabel (drawFilename state) (drawViewport state)
+    page :: Widget'
+    page = B.borderWithLabel (drawFilename state) (drawViewport state)
 
-        sidebar :: Widget'
-        sidebar = W.padLeftRight 1
-                $ W.hLimit 45
-                $ drawMode state <=> drawMessage state
+    sidebar :: Widget'
+    sidebar
+      = W.padLeftRight 1 $ W.hLimit 45 $ drawMode state <=> drawMessage state

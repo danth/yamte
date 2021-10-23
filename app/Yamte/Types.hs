@@ -92,13 +92,12 @@ type AST = Tree SyntaxConstruct
 
 type ASTCursor = TreeCursor SyntaxConstruct
 
-data State = State
-  { _document :: ASTCursor
-  , _filename :: Maybe String
-  , _message :: String
-  , _modes :: [ Mode ]
-  , _touched :: Bool
-  }
+data State = State { _document :: ASTCursor
+                   , _filename :: Maybe String
+                   , _message :: String
+                   , _modes :: [ Mode ]
+                   , _touched :: Bool
+                   }
 
 instance Default State where
   def = State
