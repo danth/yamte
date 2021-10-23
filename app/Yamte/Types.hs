@@ -19,7 +19,6 @@ module Yamte.Types
   , filename
   , message
   , modes
-  , showHints
   , touched
   , Event
   , Event'
@@ -98,7 +97,6 @@ data State = State
   , _filename :: Maybe String
   , _message :: String
   , _modes :: [ Mode ]
-  , _showHints :: Bool
   , _touched :: Bool
   }
 
@@ -112,7 +110,6 @@ instance Default State where
     , _filename = Nothing
     , _message = "Welcome to Yamte!"
     , _modes = []
-    , _showHints = False
     , _touched = False
     }
 

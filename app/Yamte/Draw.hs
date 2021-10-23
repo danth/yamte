@@ -4,11 +4,10 @@ import Brick.Types ( ViewportType(Both) )
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as W
-import Brick.Widgets.Core ( (<+>) )
-import qualified Brick.Widgets.Table as WT
+import Brick.Widgets.Core ( (<+>), (<=>) )
 
 import Data.Function ( on )
-import Data.List ( groupBy, intercalate, intersperse )
+import Data.List ( groupBy, intercalate )
 import Data.Maybe ( fromMaybe )
 
 import Lens.Micro ( (^.), (^..), (^?!), _head, each )
@@ -28,68 +27,71 @@ import Yamte.Types
   , filename
   , message
   , modes
-  , showHints
   , touched
   )
-
-modeStatus :: [ Mode ] -> String
-modeStatus modes = let modeNames = reverse $ map show modes
-                   in intercalate " → " modeNames ++ " mode"
-
-drawStatus :: State -> Widget'
-drawStatus state = C.hCenter $ W.hBox $ intersperse separator widgets
-  where elements :: [ String ]
-        elements = [ fromMaybe "[No name]" $ state ^. filename
-                   , if state ^. touched
-                     then "Touched"
-                     else "Untouched"
-                   , modeStatus $ state ^. modes
-                   ]
-
-        widgets :: [ Widget' ]
-        widgets = map W.str elements
-
-        separator :: Widget'
-        separator = W.str " • "
 
 drawViewport :: State -> Widget'
 drawViewport state
   = W.viewport MainViewport Both $ renderAST $ state ^. document
 
+drawFilename :: State -> Widget'
+drawFilename state = W.padLeftRight 1 $ W.str $ file ++ flag
+  where file :: String
+        file = fromMaybe "[No name]" $ state ^. filename
+
+        flag :: String
+        flag = if state ^. touched then " *" else ""
+
+drawMessage :: State -> Widget'
+drawMessage state = W.padAll 1 $ W.strWrap $ state ^. message
+
 type Hint = ( [ ModifiedKey ], String )
 
-drawHints :: State -> Widget'
-drawHints state
-  | state ^. showHints = case activeMode state of
-    Nothing -> W.emptyWidget
-    (Just (FunctionMode _ _)) -> W.emptyWidget
-    (Just (ActionMode _ actions)) -> drawHints actions
-  | otherwise = W.emptyWidget
+getActions :: State -> [ Action ]
+getActions state = case activeMode state of
+  Nothing -> []
+  (Just (FunctionMode _ _)) -> []
+  (Just (ActionMode _ actions)) -> actions
+
+buildHints :: [ Action ] -> [ Hint ]
+buildHints = map buildHint . groupBy ((==) `on` (^. description))
   where buildHint :: [ Action ] -> Hint
         buildHint actions
           = ( actions ^.. each . trigger, actions ^?! _head . description )
 
-        buildHints :: [ Action ] -> [ Hint ]
-        buildHints = map buildHint . groupBy ((==) `on` (^. description))
+drawHints :: [ Hint ] -> Widget'
+drawHints [] = C.hCenter $ W.str "No hints available"
+drawHints hints
+  = W.hBox [ W.vBox $ map (W.str . unwords . map show . fst) hints
+           , W.vLimit (length hints) $ W.padLeftRight 1 B.vBorder
+           , W.vBox $ map (W.str . snd) hints
+           ]
 
-        drawHint :: Hint -> [ Widget' ]
-        drawHint ( keys, description ) = map (W.padLeftRight 1 . W.str)
-          [ unwords $ map show keys, description ]
+drawHints' :: State -> Widget'
+drawHints' = drawHints . buildHints . getActions
 
-        drawTable :: [ [ Widget' ] ] -> Widget'
-        drawTable = WT.renderTable . WT.rowBorders False . WT.table
+modeName :: State -> String
+modeName state = intercalate " → " modeNames ++ " mode"
+  where modeNames :: [String]
+        modeNames = reverse $ map show $ state ^. modes
 
-        drawHints :: [ Action ] -> Widget'
-        drawHints = drawTable . map drawHint . buildHints
-
-drawMessage :: State -> Widget'
-drawMessage state = C.hCenter $ W.str $ state ^. message
+drawMode :: State -> Widget'
+drawMode state = W.joinBorders
+               $ B.border
+               $ W.vBox [ C.hCenter $ W.str $ modeName state
+                        , B.hBorder
+                        , W.padLeftRight 1 $ drawHints' state
+                        ]
 
 draw :: State -> [ Widget' ]
 draw state = [ ui ]
-  where ui = W.vBox [ drawStatus state
-                    , B.hBorder
-                    , drawViewport state <+> drawHints state
-                    , B.hBorder
-                    , drawMessage state
-                    ]
+  where ui :: Widget'
+        ui = page <+> sidebar
+
+        page :: Widget'
+        page = B.borderWithLabel (drawFilename state) (drawViewport state)
+
+        sidebar :: Widget'
+        sidebar = W.padLeftRight 1
+                $ W.hLimit 45
+                $ drawMode state <=> drawMessage state

@@ -10,7 +10,7 @@ import Data.List ( find )
 
 import Graphics.Vty ( Event(EvKey), Key(KChar), Modifier(MCtrl) )
 
-import Lens.Micro ( (%~), (^.) )
+import Lens.Micro ( (^.) )
 
 import Yamte.Editor ( leaveMode )
 import Yamte.Types
@@ -24,18 +24,11 @@ import Yamte.Types
   , ModifiedKey(..)
   , State
   , modes
-  , showHints
   )
 
 standardActions :: [ Action ]
-standardActions = [ hintAction, exitAction ]
-  where hintAction :: Action
-        hintAction = Action { _trigger = ModifiedKey (KChar '?') []
-                            , _description = "Toggle hints"
-                            , _transformation = return . (showHints %~ not)
-                            }
-
-        exitAction :: Action
+standardActions = [ exitAction ]
+  where exitAction :: Action
         exitAction = Action { _trigger = ModifiedKey (KChar 'q') [ MCtrl ]
                             , _description = "Exit this mode"
                             , _transformation = return . leaveMode
