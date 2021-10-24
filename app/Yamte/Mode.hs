@@ -61,14 +61,13 @@ handleKey (FunctionMode _ f) = f
 handleKey (ActionMode _ actions) = runAction . findAction actions
 
 handleKey' :: Stack Mode -> ModifiedKey -> State -> IO State
-handleKey' stack key state =
-  case stackPop stack of
-    Nothing -> return state
-    Just (stack', mode) ->
-      let handleResponse :: ModeResponse -> IO State
-          handleResponse (NewState state') = return state'
-          handleResponse Propagate = handleKey' stack' key state
-          handleResponse DoNothing = return state
+handleKey' stack key state = case stackPop stack of
+  Nothing -> return state
+  Just ( stack', mode )
+    -> let handleResponse :: ModeResponse -> IO State
+           handleResponse (NewState state') = return state'
+           handleResponse Propagate = handleKey' stack' key state
+           handleResponse DoNothing = return state
        in handleKey mode key state >>= handleResponse
 
 handleEvent :: State -> Event' -> EventM'
@@ -76,6 +75,6 @@ handleEvent state (VtyEvent (EvKey key modifiers)) = do
   let key' = ModifiedKey key modifiers
   state' <- liftIO $ handleKey' (state ^. modeStack) key' state
   if stackIsEmpty $ state' ^. modeStack
-     then halt state'
-     else continue state'
+    then halt state'
+    else continue state'
 handleEvent state _ = continue state

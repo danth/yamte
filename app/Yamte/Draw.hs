@@ -75,8 +75,8 @@ drawHints' = drawHints . buildHints . getActions
 
 modeName :: State -> String
 modeName state = case stackPeek $ state ^. modeStack of
-                   Nothing -> "No mode"
-                   Just mode -> show mode ++ " mode"
+  Nothing -> "No mode"
+  Just mode -> show mode ++ " mode"
 
 drawMode :: State -> Widget'
 drawMode state = W.joinBorders
