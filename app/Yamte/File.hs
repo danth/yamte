@@ -1,8 +1,4 @@
-module Yamte.File
-  ( loadFile
-  , reloadFile
-  , saveFile
-  ) where
+module Yamte.File ( loadFile, reloadFile, saveFile ) where
 
 import Control.Exception ( try )
 

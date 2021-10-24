@@ -1,4 +1,10 @@
-module Yamte.Mode ( activeMode, enterMode, leaveMode, standardActions, handleEvent ) where
+module Yamte.Mode
+  ( activeMode
+  , enterMode
+  , leaveMode
+  , standardActions
+  , handleEvent
+  ) where
 
 import Brick.Main ( continue, halt )
 import Brick.Types ( BrickEvent(VtyEvent) )
