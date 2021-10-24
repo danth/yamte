@@ -13,7 +13,7 @@ import Data.Maybe ( fromMaybe )
 import Lens.Micro ( (^.), (^..), (^?!), _head, each )
 
 import Yamte.AST ( renderAST )
-import Yamte.Editor ( activeMode )
+import Yamte.Mode ( activeMode )
 import Yamte.Types
   ( Action(..)
   , description

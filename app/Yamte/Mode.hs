@@ -1,4 +1,4 @@
-module Yamte.Mode ( standardActions, handleEvent ) where
+module Yamte.Mode ( activeMode, enterMode, leaveMode, standardActions, handleEvent ) where
 
 import Brick.Main ( continue, halt )
 import Brick.Types ( BrickEvent(VtyEvent) )
@@ -7,12 +7,12 @@ import Control.Monad ( (<=<) )
 import Control.Monad.IO.Class ( liftIO )
 
 import Data.List ( find )
+import Data.Maybe ( listToMaybe )
 
 import Graphics.Vty ( Event(EvKey), Key(KChar), Modifier(MCtrl) )
 
-import Lens.Micro ( (^.) )
+import Lens.Micro ( (%~), (&), (^.) )
 
-import Yamte.Editor ( leaveMode )
 import Yamte.Types
   ( Action(..)
   , trigger
@@ -25,6 +25,15 @@ import Yamte.Types
   , State
   , modes
   )
+
+activeMode :: State -> Maybe Mode
+activeMode state = listToMaybe $ state ^. modes
+
+enterMode :: Mode -> State -> State
+enterMode mode state = state & modes %~ (mode :)
+
+leaveMode :: State -> State
+leaveMode state = state & modes %~ tail
 
 standardActions :: [ Action ]
 standardActions = [ exitAction ]

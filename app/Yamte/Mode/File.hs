@@ -2,8 +2,8 @@ module Yamte.Mode.File ( fileMode ) where
 
 import Graphics.Vty ( Key(KChar) )
 
-import Yamte.Editor ( leaveMode, reloadFile, saveFile )
-import Yamte.Mode ( standardActions )
+import Yamte.File ( reloadFile, saveFile )
+import Yamte.Mode ( leaveMode, standardActions )
 import Yamte.Types ( Action(..), Mode(ActionMode), ModifiedKey(..), State )
 
 leaveAfter :: (State -> IO State) -> State -> IO State

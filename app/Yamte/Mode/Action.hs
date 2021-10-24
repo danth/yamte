@@ -7,8 +7,7 @@ import Graphics.Vty ( Key(KChar, KDown, KLeft, KRight, KUp) )
 
 import Lens.Micro ( ASetter, over )
 
-import Yamte.Editor ( enterMode )
-import Yamte.Mode ( standardActions )
+import Yamte.Mode ( enterMode, standardActions )
 import Yamte.Mode.File ( fileMode )
 import Yamte.Mode.Input ( InputType(..), beginInput )
 import Yamte.Types ( Action(..), Mode(ActionMode), ModifiedKey(..), document )

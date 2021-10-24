@@ -1,18 +1,14 @@
-module Yamte.Editor
+module Yamte.File
   ( loadFile
   , reloadFile
   , saveFile
-  , activeMode
-  , enterMode
-  , leaveMode
   ) where
 
 import Control.Exception ( try )
 
-import Data.Maybe ( listToMaybe )
 import Data.Tree.Cursor ( toCursor, toTree )
 
-import Lens.Micro ( (%~), (&), (.~), (?~), (^.) )
+import Lens.Micro ( (&), (.~), (?~), (^.) )
 
 import System.IO ( readFile' )
 import System.IO.Error ( isDoesNotExistError )
@@ -21,7 +17,7 @@ import Text.Parsec ( parse )
 
 import Yamte.AST ( stringifyAST )
 import Yamte.Language.Text ( parseDocument )
-import Yamte.Types ( Mode, State, document, filename, message, modes, touched )
+import Yamte.Types ( State, document, filename, message, touched )
 
 loadFile' :: String -> State -> IO State
 loadFile' file state = do
@@ -58,12 +54,3 @@ saveFile state = case state ^. filename of
   Just file -> do
     writeFile file $ stringifyAST $ toTree $ state ^. document
     return $ state & message .~ ("Saved " ++ file) & touched .~ False
-
-activeMode :: State -> Maybe Mode
-activeMode state = listToMaybe $ state ^. modes
-
-enterMode :: Mode -> State -> State
-enterMode mode state = state & modes %~ (mode :)
-
-leaveMode :: State -> State
-leaveMode state = state & modes %~ tail

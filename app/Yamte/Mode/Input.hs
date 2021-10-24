@@ -11,7 +11,7 @@ import Lens.Micro ( (%~), (^.), to )
 import Text.Parsec ( parse )
 
 import Yamte.AST ( stringifyAST )
-import Yamte.Editor ( enterMode )
+import Yamte.Mode ( enterMode )
 import Yamte.Types
   ( AST
   , Mode(FunctionMode)
