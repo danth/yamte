@@ -30,10 +30,10 @@
           buildInputs = [ ghc ];
           buildPhase = ''
             cd app
-            ghc -O -threaded -Wall Main.hs
+            ghc -O -threaded -Wall Yamte/Main.hs
           '';
           installPhase = ''
-            install -D Main $out/bin/yamte
+            install -D Yamte/Main $out/bin/yamte
           '';
         };
 
