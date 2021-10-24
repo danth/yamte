@@ -13,7 +13,7 @@ import Control.Monad ( (<=<) )
 import Control.Monad.IO.Class ( liftIO )
 
 import Data.List ( find )
-import Data.Maybe ( listToMaybe )
+import Data.Stack ( Stack, stackIsEmpty, stackPeek, stackPop, stackPush )
 
 import Graphics.Vty ( Event(EvKey), Key(KChar), Modifier(MCtrl) )
 
@@ -29,17 +29,17 @@ import Yamte.Types
   , ModeResponse(..)
   , ModifiedKey(..)
   , State
-  , modes
+  , modeStack
   )
 
 activeMode :: State -> Maybe Mode
-activeMode state = listToMaybe $ state ^. modes
+activeMode state = stackPeek $ state ^. modeStack
 
 enterMode :: Mode -> State -> State
-enterMode mode state = state & modes %~ (mode :)
+enterMode mode state = state & modeStack %~ (`stackPush` mode)
 
 leaveMode :: State -> State
-leaveMode state = state & modes %~ tail
+leaveMode state = state & modeStack %~ (\s -> maybe s fst $ stackPop s)
 
 standardActions :: [ Action ]
 standardActions = [ exitAction ]
@@ -60,18 +60,22 @@ handleKey :: Mode -> ModifiedKey -> State -> IO ModeResponse
 handleKey (FunctionMode _ f) = f
 handleKey (ActionMode _ actions) = runAction . findAction actions
 
-handleKey' :: [ Mode ] -> ModifiedKey -> State -> IO State
-handleKey' [] _ state = return state
-handleKey' (mode : modes) key state = do
-  response <- handleKey mode key state
-  case response of NewState state' -> return state'
-                   Propagate -> handleKey' modes key state
-                   DoNothing -> return state
+handleKey' :: Stack Mode -> ModifiedKey -> State -> IO State
+handleKey' stack key state =
+  case stackPop stack of
+    Nothing -> return state
+    Just (stack', mode) ->
+      let handleResponse :: ModeResponse -> IO State
+          handleResponse (NewState state') = return state'
+          handleResponse Propagate = handleKey' stack' key state
+          handleResponse DoNothing = return state
+       in handleKey mode key state >>= handleResponse
 
 handleEvent :: State -> Event' -> EventM'
 handleEvent state (VtyEvent (EvKey key modifiers)) = do
   let key' = ModifiedKey key modifiers
-  state' <- liftIO $ handleKey' (state ^. modes) key' state
-  case state' ^. modes of [] -> halt state'
-                          _ -> continue state'
+  state' <- liftIO $ handleKey' (state ^. modeStack) key' state
+  if stackIsEmpty $ state' ^. modeStack
+     then halt state'
+     else continue state'
 handleEvent state _ = continue state

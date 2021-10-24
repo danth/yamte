@@ -16,6 +16,7 @@
 
         ghc = pkgs.haskell.packages.ghc901.ghcWithPackages
           (haskellPackages: with haskellPackages; [
+            Stack
             brick
             data-default-class
             microlens

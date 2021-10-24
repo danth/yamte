@@ -18,7 +18,7 @@ module Yamte.Types
   , document
   , filename
   , message
-  , modes
+  , modeStack
   , touched
   , Event
   , Event'
@@ -31,6 +31,7 @@ import Brick.Types ( BrickEvent, EventM, Next, Widget )
 import qualified Brick.Widgets.Core as W
 
 import Data.Default.Class ( Default(..) )
+import Data.Stack ( Stack )
 import Data.Tree ( Tree(..) )
 import Data.Tree.Cursor ( TreeCursor, toCursor )
 
@@ -95,7 +96,7 @@ type ASTCursor = TreeCursor SyntaxConstruct
 data State = State { _document :: ASTCursor
                    , _filename :: Maybe String
                    , _message :: String
-                   , _modes :: [ Mode ]
+                   , _modeStack :: Stack Mode
                    , _touched :: Bool
                    }
 
@@ -108,7 +109,7 @@ instance Default State where
                                 }) []
     , _filename = Nothing
     , _message = "Welcome to Yamte!"
-    , _modes = []
+    , _modeStack = mempty
     , _touched = False
     }
 

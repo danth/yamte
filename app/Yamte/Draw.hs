@@ -7,8 +7,9 @@ import qualified Brick.Widgets.Core as W
 import Brick.Widgets.Core ( (<+>), (<=>) )
 
 import Data.Function ( on )
-import Data.List ( groupBy, intercalate )
+import Data.List ( groupBy )
 import Data.Maybe ( fromMaybe )
+import Data.Stack ( stackPeek )
 
 import Lens.Micro ( (^.), (^..), (^?!), _head, each )
 
@@ -26,7 +27,7 @@ import Yamte.Types
   , document
   , filename
   , message
-  , modes
+  , modeStack
   , touched
   )
 
@@ -73,9 +74,9 @@ drawHints' :: State -> Widget'
 drawHints' = drawHints . buildHints . getActions
 
 modeName :: State -> String
-modeName state = intercalate " → " modeNames ++ " mode"
-  where modeNames :: [ String ]
-        modeNames = reverse $ map show $ state ^. modes
+modeName state = case stackPeek $ state ^. modeStack of
+                   Nothing -> "No mode"
+                   Just mode -> show mode ++ " mode"
 
 drawMode :: State -> Widget'
 drawMode state = W.joinBorders
