@@ -8,7 +8,7 @@ import qualified Brick.Widgets.Core as W
 import Data.Char ( isSpace )
 import Data.Tree ( Tree(..) )
 
-import Text.Parsec ( ParsecT, Stream, (<|>), many, many1, sepEndBy )
+import Text.Parsec ( ParsecT, Stream, (<|>), many, many1, endBy )
 import Text.Parsec.Char ( newline, satisfy )
 
 import Yamte.Types ( AST, SyntaxConstruct(..) )
@@ -41,4 +41,4 @@ parseDocument = Node (SyntaxConstruct { _render = W.vBox
                                       , _stringify = unlines
                                       , _parser = parseDocument
                                       })
-  <$> parseLine `sepEndBy` newline
+  <$> parseLine `endBy` newline
