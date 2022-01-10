@@ -32,12 +32,11 @@ renderStateAST :: State -> Widget'
 renderStateAST state = foldCursor renderNode $ state ^. document
   where
     renderNode :: CursorRelativity -> SyntaxConstruct -> [ Widget' ] -> Widget'
-    renderNode IsTarget construct
-      = W.visible . W.forceAttr cursorAttribute
-      . case state ^. currentInput of
-          Nothing -> construct ^. render
-          Just "" -> const $ W.str " "
-          Just input -> const $ W.str input
+    renderNode IsTarget construct = W.visible
+      . W.forceAttr cursorAttribute
+      . case state ^. currentInput of Nothing -> construct ^. render
+                                      Just "" -> const $ W.str " "
+                                      Just input -> const $ W.str input
     renderNode _ construct = construct ^. render
 
 stringifyAST :: AST -> String
