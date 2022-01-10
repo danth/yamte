@@ -31,7 +31,7 @@ import Yamte.Types
   )
 
 drawViewport :: State -> Widget'
-drawViewport state = W.viewport MainViewport Both $ renderStateAST state
+drawViewport = W.viewport MainViewport Both . renderStateAST
 
 drawFilename :: State -> Widget'
 drawFilename state = W.padLeftRight 1 $ W.str $ file ++ flag

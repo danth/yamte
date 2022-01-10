@@ -58,9 +58,9 @@ foldCursor f cursor = foldAbove (cursor ^. above)
         foldForest relativity = map $ foldTree $ f relativity
 
         foldSplice :: TreeAbove a -> b -> [ b ]
-        foldSplice above' centre = (foldForest NotTarget $ above' ^. lefts)
+        foldSplice above' centre = foldForest NotTarget (above' ^. lefts)
           ++ [ centre ]
-          ++ (foldForest NotTarget $ above' ^. rights)
+          ++ foldForest NotTarget (above' ^. rights)
 
         foldAbove :: Maybe (TreeAbove a) -> b -> b
         foldAbove Nothing centre = centre
