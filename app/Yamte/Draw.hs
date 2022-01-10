@@ -13,7 +13,7 @@ import Data.Stack ( stackPeek )
 
 import Lens.Micro ( (^.), (^..), (^?!), _head, each )
 
-import Yamte.AST ( renderAST )
+import Yamte.AST ( renderStateAST )
 import Yamte.Mode ( activeMode )
 import Yamte.Types
   ( Action(..)
@@ -24,7 +24,6 @@ import Yamte.Types
   , Resource(..)
   , State
   , Widget'
-  , document
   , filename
   , message
   , modeStack
@@ -33,7 +32,7 @@ import Yamte.Types
 
 drawViewport :: State -> Widget'
 drawViewport state
-  = W.viewport MainViewport Both $ renderAST $ state ^. document
+  = W.viewport MainViewport Both $ renderStateAST state
 
 drawFilename :: State -> Widget'
 drawFilename state = W.padLeftRight 1 $ W.str $ file ++ flag

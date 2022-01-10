@@ -1,6 +1,6 @@
-module Yamte.AST ( renderAST, stringifyAST ) where
+module Yamte.AST ( renderAST, renderStateAST, stringifyAST ) where
 
-import Brick.Widgets.Core ( forceAttr, visible )
+import qualified Brick.Widgets.Core as W
 
 import Data.Tree ( foldTree )
 import Data.Tree.Cursor ( CursorRelativity(..), foldCursor )
@@ -9,7 +9,10 @@ import Lens.Micro ( (^.) )
 
 import Yamte.Attributes ( cursorAttribute )
 import Yamte.Types
-  ( SyntaxConstruct
+  ( State
+  , currentInput
+  , document
+  , SyntaxConstruct
   , AST
   , ASTCursor
   , render
@@ -22,7 +25,19 @@ renderAST = foldCursor renderNode
   where
     renderNode :: CursorRelativity -> SyntaxConstruct -> [ Widget' ] -> Widget'
     renderNode IsTarget construct
-      = visible . forceAttr cursorAttribute . (construct ^. render)
+      = W.visible . W.forceAttr cursorAttribute . (construct ^. render)
+    renderNode _ construct = construct ^. render
+
+renderStateAST :: State -> Widget'
+renderStateAST state = foldCursor renderNode $ state ^. document
+  where
+    renderNode :: CursorRelativity -> SyntaxConstruct -> [ Widget' ] -> Widget'
+    renderNode IsTarget construct
+      = W.visible . W.forceAttr cursorAttribute
+      . case state ^. currentInput of
+          Nothing -> construct ^. render
+          Just "" -> const $ W.str " "
+          Just input -> const $ W.str input
     renderNode _ construct = construct ^. render
 
 stringifyAST :: AST -> String

@@ -15,6 +15,7 @@ module Yamte.Types
   , AST
   , ASTCursor
   , State
+  , currentInput
   , document
   , filename
   , message
@@ -93,7 +94,8 @@ type AST = Tree SyntaxConstruct
 
 type ASTCursor = TreeCursor SyntaxConstruct
 
-data State = State { _document :: ASTCursor
+data State = State { _currentInput :: Maybe String
+                   , _document :: ASTCursor
                    , _filename :: Maybe String
                    , _message :: String
                    , _modeStack :: Stack Mode
@@ -102,7 +104,8 @@ data State = State { _document :: ASTCursor
 
 instance Default State where
   def = State
-    { _document = toCursor
+    { _currentInput = Nothing
+    , _document = toCursor
         $ Node (SyntaxConstruct { _render = const W.emptyWidget
                                 , _stringify = const ""
                                 , _parser = fail "Cannot modify empty document"
