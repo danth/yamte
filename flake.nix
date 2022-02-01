@@ -10,7 +10,7 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        ghc = pkgs.haskell.packages.ghc921.ghcWithPackages
+        ghc = pkgs.haskell.packages.ghc901.ghcWithPackages
           (haskellPackages: with haskellPackages; [
             brick
             data-default-class
